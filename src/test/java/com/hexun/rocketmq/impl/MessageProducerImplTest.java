@@ -18,12 +18,12 @@ public class MessageProducerImplTest {
     public void testAddAppointment() throws Exception {
         for (int i = 0; i < 1000; i++) {
             System.out.println(i);
-            producer.send("123123123", "111111111111");
+            producer.sendAsync(i + "key", i + "msg", "");
         }
     }
 
     @Test
     public void testGetTime() throws Exception {
-
+        Thread.sleep(5000000);
     }
 }

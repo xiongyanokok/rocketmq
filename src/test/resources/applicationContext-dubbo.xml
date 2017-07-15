@@ -8,11 +8,26 @@
 
     <context:component-scan base-package="com.hexun"/>
 
-    <bean id="producerClientConfig" class="com.hexun.rocketmq.client.ProducerClientConfig">
-        <property name="topic" value="yuanyuetest"/>
-        <property name="vipChannelEnabled" value="false"/>
+    <bean id="producerClientConfig" class="com.hexun.rocketmq.MessageProducer" init-method="init">
+        <property name="topic" value="BenchmarkTest"/>
+        <!--<property name="producerGroup" value="GP-yuanyue"/>-->
+        <!--<property name="vipChannelEnabled" value="false"/>-->
         <property name="namesrvAddr" value="10.4.63.103:9876;10.4.63.104:9876"/>
-     </bean>
+    </bean>
 
+    <!--<bean class="com.hexun.rocketmq.MessageConsumer">-->
+        <!--<property name="namesrvAddr" value="10.4.63.103:9876;10.4.63.104:9876"/>-->
+        <!--<property name="consumerGroup" value="consumer-yuanyue"/>-->
+        <!--<property name="topic"  value="yuanyuetest"/>-->
+        <!--<property name="subExpression" value="*"/>-->
+        <!--<property name="vipChannelEnabled" value="false"/>-->
+    <!--</bean>-->
+    <!--<bean id="listener" class="com.hexun.rocketmq.impl.TestListener2"/>-->
+    <!--<bean class="com.hexun.rocketmq.MessageConcurrentlyConsumer">-->
+        <!--<property name="topic" value="yuanyuetest"/>-->
+        <!--<property name="namesrvAddr" value="10.4.63.103:9876;10.4.63.104:9876"/>-->
+        <!--<property name="subExpression" value="*"/>-->
+        <!--<property name="messageListener" ref="listener"/>-->
+    <!--</bean>-->
 
 </beans>
