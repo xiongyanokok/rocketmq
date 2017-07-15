@@ -25,6 +25,6 @@ public class TestListener implements MessageListenerOrderly {
 
             }
         }
-        return ConsumeOrderlyStatus.SUSPEND_CURRENT_QUEUE_A_MOMENT;
+        return ConsumeOrderlyStatus.SUCCESS;
     }
 }

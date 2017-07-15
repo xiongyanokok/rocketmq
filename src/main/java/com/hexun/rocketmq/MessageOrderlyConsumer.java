@@ -3,6 +3,7 @@ package com.hexun.rocketmq;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerOrderly;
 import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -61,12 +62,15 @@ public class MessageOrderlyConsumer extends DefaultMQPushConsumer implements Dis
     public void init() throws MQClientException {
         setConsumerGroup("CG-" + topic);
         subscribe(topic, subExpression);
+        setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
         registerMessageListener(messageListener);
+        setVipChannelEnabled(false);
         start();
     }
 
     @Override
     public void destroy() throws Exception {
+        unsubscribe(topic);
         shutdown();
     }
 }

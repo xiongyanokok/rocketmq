@@ -9,12 +9,17 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"/*.xml"})
-public class MessageProducerImplTest {
+public class MessageProducerTest {
 
-
+    @Autowired
+    MessageProducer producer;
 
     @Test
-    public void testConsumer() throws Exception {
-        Thread.sleep(5000000);
+    public void testAddAppointment() throws Exception {
+        for (int i = 0; i < 1000; i++) {
+            System.out.println(i);
+            producer.sendAsync(i + "key", i + "msg", "");
+        }
+        Thread.sleep(2000000);
     }
 }

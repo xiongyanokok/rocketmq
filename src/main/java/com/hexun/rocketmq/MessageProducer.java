@@ -137,10 +137,11 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
 
     /**
      * 同步发送,异步回调,回调设置为黑洞.
-     * @param key
-     * @param messageObject
-     * @param tag
-     * @param <T>
+     *
+     * @param key           消息的主键,以便后续查询
+     * @param messageObject 消息体
+     * @param tag           标签
+     * @param <T>           消息体bean类型
      * @throws MQClientException
      * @throws RemotingException
      * @throws InterruptedException
@@ -174,12 +175,12 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
     SendCallback defaultSendCallback = new SendCallback() {
         @Override
         public void onSuccess(SendResult sendResult) {
-
+            log.info("msgId={},status={}", sendResult.getMsgId(), sendResult.getSendStatus());
         }
 
         @Override
         public void onException(Throwable e) {
-
+            log.error("发送消息错误", e);
         }
     };
 }
