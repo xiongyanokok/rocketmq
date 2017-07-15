@@ -24,6 +24,6 @@ public class TestListener2 implements MessageListenerConcurrently {
 
             }
         }
-        return ConsumeConcurrentlyStatus.RECONSUME_LATER;
+        return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
     }
 }

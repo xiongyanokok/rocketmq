@@ -57,6 +57,7 @@ public class MessageOrderlyConsumer extends DefaultMQPushConsumer implements Dis
 
     /**
      * 初始化
+     * 默认的 consumer group name :"CG-" + topic
      * @throws MQClientException
      */
     public void init() throws MQClientException {

@@ -9,13 +9,13 @@
     <context:component-scan base-package="com.hexun"/>
 
     <bean id="producerClientConfig" class="com.hexun.rocketmq.MessageProducer" init-method="init">
-        <property name="topic" value="BenchmarkTest"/>
+        <property name="topic" value="yuanyue"/>
         <property name="namesrvAddr" value="10.4.63.103:9876;10.4.63.104:9876"/>
     </bean>
 
     <bean class="com.hexun.rocketmq.MessageOrderlyConsumer" init-method="init">
         <property name="namesrvAddr" value="10.4.63.103:9876;10.4.63.104:9876"/>
-        <property name="topic"  value="BenchmarkTest"/>
+        <property name="topic"  value="yuanyue"/>
         <property name="subExpression" value="*"/>
         <property name="messageListener" ref="listener"/>
         <property name="vipChannelEnabled" value="false"/>

@@ -52,8 +52,9 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
      */
     public void init() throws MQClientException {
         setVipChannelEnabled(false);
-        setProducerGroup("PG" + topic);
+        setProducerGroup("PG-" + topic);
         start();
+        log.info("{} start", getClientIP());
     }
 
     /**
