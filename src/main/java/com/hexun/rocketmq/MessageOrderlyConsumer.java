@@ -26,7 +26,7 @@ public class MessageOrderlyConsumer extends DefaultMQPushConsumer implements Dis
     String subExpression;
 
     /**
-     *  顺序消息消费 Listener
+     * 顺序消息消费 Listener
      */
     MessageListenerOrderly messageListener;
 
@@ -41,6 +41,7 @@ public class MessageOrderlyConsumer extends DefaultMQPushConsumer implements Dis
 
     /**
      * 设置setSubExpression
+     *
      * @param subExpression
      */
     public void setSubExpression(String subExpression) {
@@ -49,6 +50,7 @@ public class MessageOrderlyConsumer extends DefaultMQPushConsumer implements Dis
 
     /**
      * 设置 listener
+     *
      * @param messageListener
      */
     public void setMessageListener(MessageListenerOrderly messageListener) {
@@ -58,6 +60,7 @@ public class MessageOrderlyConsumer extends DefaultMQPushConsumer implements Dis
     /**
      * 初始化
      * 默认的 consumer group name :"CG-" + topic
+     *
      * @throws MQClientException
      */
     public void init() throws MQClientException {

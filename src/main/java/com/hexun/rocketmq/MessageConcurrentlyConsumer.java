@@ -3,11 +3,10 @@ package com.hexun.rocketmq;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
-
-import javax.annotation.PostConstruct;
 
 public class MessageConcurrentlyConsumer extends DefaultMQPushConsumer implements DisposableBean {
 
@@ -27,7 +26,7 @@ public class MessageConcurrentlyConsumer extends DefaultMQPushConsumer implement
     String subExpression;
 
     /**
-     * 顺序消息消费 Listener
+     * 消息消费 Listener
      */
     MessageListenerConcurrently messageListener;
 
@@ -60,17 +59,21 @@ public class MessageConcurrentlyConsumer extends DefaultMQPushConsumer implement
 
     /**
      * 初始化
+     *
      * @throws MQClientException
      */
     public void init() throws MQClientException {
         setConsumerGroup("CG-" + topic);
         subscribe(topic, subExpression);
+        setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
         registerMessageListener(messageListener);
+        setVipChannelEnabled(false);
         start();
     }
 
     @Override
     public void destroy() throws Exception {
-        super.shutdown();
+        unsubscribe(topic);
+        shutdown();
     }
 }
