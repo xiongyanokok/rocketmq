@@ -1,9 +1,10 @@
-package com.hexun.rocketmq.utils;
+package com.hexun.rocketmq.client.utils;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+
 public class RunTimeUtil {
 	/**
 	 * 取线程ID

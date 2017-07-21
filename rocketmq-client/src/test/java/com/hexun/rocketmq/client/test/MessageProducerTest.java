@@ -1,6 +1,7 @@
-package com.hexun.rocketmq.impl;
+package com.hexun.rocketmq.client.test;
 
-import com.hexun.rocketmq.MessageProducer;
+import com.hexun.common.utils.DateUtils;
+import com.hexun.rocketmq.client.MessageProducer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,8 @@ public class MessageProducerTest {
     public void testAddAppointment() throws Exception {
         for (int i = 0; i < 1000; i++) {
             System.out.println(i);
-            producer.sendAsync(i + "key", i + "msg", "");
+            String now = DateUtils.now();
+            producer.sendAsync(i + now, i + now, now);
         }
         Thread.sleep(2000000);
     }

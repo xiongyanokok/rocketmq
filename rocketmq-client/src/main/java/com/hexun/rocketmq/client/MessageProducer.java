@@ -1,4 +1,4 @@
-package com.hexun.rocketmq;
+package com.hexun.rocketmq.client;
 
 import com.hexun.common.utils.JsonUtils;
 import org.apache.rocketmq.client.exception.MQBrokerException;

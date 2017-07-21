@@ -1,19 +1,21 @@
-package com.hexun.rocketmq;
+package com.hexun.rocketmq.client;
 
+import com.hexun.common.utils.StringUtils;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
-import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
+import org.apache.rocketmq.client.consumer.listener.MessageListener;
+import org.apache.rocketmq.client.consumer.listener.MessageListenerOrderly;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 
-public class MessageConcurrentlyConsumer extends DefaultMQPushConsumer implements DisposableBean {
+public class MessageConsumer extends DefaultMQPushConsumer implements DisposableBean {
 
     /**
      * logger
      */
-    private static final Logger log = LoggerFactory.getLogger(MessageOrderlyConsumer.class);
+    private static final Logger log = LoggerFactory.getLogger(MessageConsumer.class);
 
     /**
      * topic
@@ -28,7 +30,7 @@ public class MessageConcurrentlyConsumer extends DefaultMQPushConsumer implement
     /**
      * 消息消费 Listener
      */
-    MessageListenerConcurrently messageListener;
+    MessageListener messageListener;
 
     /**
      * 设置 topic
@@ -53,22 +55,26 @@ public class MessageConcurrentlyConsumer extends DefaultMQPushConsumer implement
      *
      * @param messageListener
      */
-    public void setMessageListener(MessageListenerConcurrently messageListener) {
+    public void setMessageListener(MessageListenerOrderly messageListener) {
         this.messageListener = messageListener;
     }
 
     /**
      * 初始化
+     * 默认的 consumer group name :"CG-" + topic
      *
      * @throws MQClientException
      */
     public void init() throws MQClientException {
-        setConsumerGroup("CG-" + topic);
+        if (StringUtils.isEmpty(getConsumerGroup()) || "DEFAULT_CONSUMER".equals(getConsumerGroup())) {
+            setConsumerGroup("CG-" + topic);
+        }
         subscribe(topic, subExpression);
         setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
         registerMessageListener(messageListener);
         setVipChannelEnabled(false);
         start();
+        log.debug("消费者启动:TOPIC={},消费者ConsumerGroup={}", topic, getConsumerGroup());
     }
 
     @Override

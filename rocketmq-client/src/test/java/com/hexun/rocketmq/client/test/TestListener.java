@@ -1,4 +1,4 @@
-package com.hexun.rocketmq.impl;
+package com.hexun.rocketmq.client.test;
 
 import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyStatus;
