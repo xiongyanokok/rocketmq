@@ -5,7 +5,7 @@
     <parent>
         <artifactId>rocketmq</artifactId>
         <groupId>com.hexun</groupId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -46,7 +46,12 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
-
-
     </dependencies>
+    <distributionManagement>
+        <repository>
+            <id>nexus</id>
+            <name>nexus</name>
+            <url>http://10.0.202.86:8081/nexus/content/repositories/releases/</url>
+        </repository>
+    </distributionManagement>
 </project>
