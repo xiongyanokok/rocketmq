@@ -53,6 +53,13 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
     public void init() throws MQClientException {
         setVipChannelEnabled(false);
         setProducerGroup("PG-" + topic);
+        if (getSendMsgTimeout() <= 0) {
+            setSendMsgTimeout(10000);
+        }
+        if (getRetryTimesWhenSendFailed() <= 0) {
+            setRetryTimesWhenSendFailed(1);
+        }
+        setCreateTopicKey(topic);
         start();
         log.info("{} start", getClientIP());
     }

@@ -4,13 +4,13 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.Layout;
 import ch.qos.logback.core.status.ErrorStatus;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.hexun.common.utils.IpUtils;
+import com.hexun.common.utils.JsonUtils;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
-import org.apache.rocketmq.client.producer.MQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.common.message.Message;
-import org.apache.rocketmq.logappender.common.ProducerInstance;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -74,15 +74,15 @@ public class Appender extends AppenderBase<ILoggingEvent> {
             return;
         }
         String logStr = this.layout.doLayout(event);
-        try {
-            Message msg = new Message(topic, tag, logStr.getBytes());
-            msg.getProperties().put(ProducerInstance.APPENDER_TYPE, ProducerInstance.LOGBACK_APPENDER);
-            msg.getProperties().put("sip", IpUtils.getHostIP());
-            msg.getProperties().put("shost", IpUtils.getHostName());
-            messagesQueue.add(msg);
 
-            //Send message and do not wait for the ack from the message broker.
-            //producer.sendOneway(msg);
+        try {
+            ObjectNode objectNode = (ObjectNode) JsonUtils.string2JsonNode(logStr);
+            objectNode.put("sip", IpUtils.getHostIP());
+            objectNode.put("host", IpUtils.getHostName());
+            objectNode.put("tag", tag);
+            objectNode.put("topic", topic);
+            Message msg = new Message(topic, tag, logStr.getBytes());
+            messagesQueue.add(msg);
         } catch (Exception e) {
             addError("Could not send message in RocketmqLogbackAppender [" + name + "]. Message is : " + logStr, e);
         }
@@ -103,14 +103,13 @@ public class Appender extends AppenderBase<ILoggingEvent> {
             return;
         }
         try {
-
             String producerGroup = "PG-" + topic;
             producer = new DefaultMQProducer();
             producer.setNamesrvAddr(nameServerAddress);
             producer.setVipChannelEnabled(false);
             producer.setProducerGroup(producerGroup);
-            producer.setSendMsgTimeout(10000);
-            producer.setRetryTimesWhenSendFailed(1);
+            producer.setSendMsgTimeout(20000);
+            producer.setRetryTimesWhenSendFailed(3);
             producer.setCreateTopicKey(topic);
             producer.start();
             started = true;
@@ -130,7 +129,6 @@ public class Appender extends AppenderBase<ILoggingEvent> {
                                 long l = SendStatus.SEND_OK.equals(sendResult.getSendStatus()) ?
                                         successCount.incrementAndGet() :
                                         failCount.incrementAndGet();
-
                             }
                         } catch (Exception e) {
                             failCount.incrementAndGet();
@@ -156,11 +154,6 @@ public class Appender extends AppenderBase<ILoggingEvent> {
      * When system exit,this method will be called to close resources
      */
     public synchronized void stop() {
-        // The synchronized modifier avoids concurrent append and close operations
-        if (!this.started) {
-            return;
-        }
-
         this.started = false;
 
         try {
@@ -174,19 +167,13 @@ public class Appender extends AppenderBase<ILoggingEvent> {
         producer = null;
     }
 
-    protected boolean checkEntryConditions() {
-        String fail = null;
 
+    boolean checkEntryConditions() {
         if (this.topic == null) {
-            fail = "No topic";
-        }
-
-        if (fail != null) {
-            addError(fail + " for RocketmqLogbackAppender named [" + name + "].");
+            addError("No topic for RocketmqLogbackAppender named [" + name + "].");
             return false;
-        } else {
-            return true;
         }
+        return true;
     }
 
     /**
