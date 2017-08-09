@@ -28,14 +28,13 @@ public class MessageProducerTest {
 //    }
 
 
-
     @Test
     public void testlog() throws Exception {
         Logger logger = LoggerFactory.getLogger(MessageProducerTest.class);
         for (int i = 0; i < 1000; i++) {
             System.out.println(i);
             String now = DateUtils.now();
-            logger.error(now);
+            logger.error(i + "---" + now);
         }
         Thread.sleep(2000000);
     }

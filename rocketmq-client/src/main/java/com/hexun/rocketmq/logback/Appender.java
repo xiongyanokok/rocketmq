@@ -12,6 +12,7 @@ import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.common.message.Message;
 
+import java.nio.charset.Charset;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
@@ -63,6 +64,8 @@ public class Appender extends AppenderBase<ILoggingEvent> {
      */
     private Layout layout;
 
+    Charset charset = Charset.forName("UTF-8");
+
     /**
      * Info,error,warn,callback method implementation
      *
@@ -81,7 +84,7 @@ public class Appender extends AppenderBase<ILoggingEvent> {
             objectNode.put("host", IpUtils.getHostName());
             objectNode.put("tag", tag);
             objectNode.put("topic", topic);
-            Message msg = new Message(topic, tag, logStr.getBytes());
+            Message msg = new Message(topic, tag, objectNode.toString().getBytes(charset));
             messagesQueue.add(msg);
         } catch (Exception e) {
             addError("Could not send message in RocketmqLogbackAppender [" + name + "]. Message is : " + logStr, e);

@@ -1,11 +1,13 @@
 package com.hexun.rocketmq.client;
 
+import com.hexun.common.utils.IpUtils;
 import com.hexun.common.utils.StringUtils;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.MessageListener;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerOrderly;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
+import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -72,9 +74,11 @@ public class MessageConsumer extends DefaultMQPushConsumer implements Disposable
         subscribe(topic, subExpression);
         setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
         registerMessageListener(messageListener);
+        setMessageModel(MessageModel.CLUSTERING);
+        setClientIP(IpUtils.getHostIP());
         setVipChannelEnabled(false);
         start();
-        log.debug("消费者启动:TOPIC={},消费者ConsumerGroup={}", topic, getConsumerGroup());
+        log.info("消费者启动成功:TOPIC={},消费者ConsumerGroup={},IP={}", topic, getConsumerGroup(), IpUtils.getHostIP());
     }
 
     @Override
