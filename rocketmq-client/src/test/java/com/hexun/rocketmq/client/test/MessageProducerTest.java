@@ -34,7 +34,7 @@ public class MessageProducerTest {
         for (int i = 0; i < 1000; i++) {
             System.out.println(i);
             String now = DateUtils.now();
-            logger.error(i + "---" + now);
+            logger.error(i + "---i={}" + now, i);
         }
         Thread.sleep(2000000);
     }

@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * @author yuanyue
  */
-public class Appender extends AppenderBase<ILoggingEvent> {
+public class RocketmqJsonAppender extends AppenderBase<ILoggingEvent> {
 
     /**
      * 发送成功的计数器
@@ -62,8 +62,11 @@ public class Appender extends AppenderBase<ILoggingEvent> {
     /**
      * layout
      */
-    private Layout layout;
+    private Layout layout = new JacksonLayout();
 
+    /**
+     * default charset utf8
+     */
     Charset charset = Charset.forName("UTF-8");
 
     /**
@@ -76,18 +79,18 @@ public class Appender extends AppenderBase<ILoggingEvent> {
         if (!isStarted()) {
             return;
         }
-        String logStr = this.layout.doLayout(event);
-
         try {
-            ObjectNode objectNode = (ObjectNode) JsonUtils.string2JsonNode(logStr);
-            objectNode.put("sip", IpUtils.getHostIP());
-            objectNode.put("host", IpUtils.getHostName());
-            objectNode.put("tag", tag);
-            objectNode.put("topic", topic);
-            Message msg = new Message(topic, tag, objectNode.toString().getBytes(charset));
+            Message msg = new Message(topic, tag, event.getFormattedMessage().getBytes(charset));
+            msg.putUserProperty("sip", IpUtils.getHostIP());
+            msg.putUserProperty("host", IpUtils.getHostName());
+            msg.putUserProperty("timestamp", event.getTimeStamp() + "");
+            msg.putUserProperty("format", "json");
+            msg.putUserProperty("thread",event.getThreadName());
+            msg.putUserProperty("logger",event.getLoggerName());
+            msg.putUserProperty("level",event.getLevel().levelStr);
             messagesQueue.add(msg);
         } catch (Exception e) {
-            addError("Could not send message in RocketmqLogbackAppender [" + name + "]. Message is : " + logStr, e);
+            addError("Could not send message in RocketmqLogbackAppender [" + name + "]. Message is : " + event.getFormattedMessage(), e);
         }
     }
 
@@ -106,15 +109,15 @@ public class Appender extends AppenderBase<ILoggingEvent> {
             return;
         }
         try {
-            String producerGroup = "PG-" + topic;
-            producer = new DefaultMQProducer();
-            producer.setNamesrvAddr(nameServerAddress);
-            producer.setVipChannelEnabled(false);
-            producer.setProducerGroup(producerGroup);
-            producer.setSendMsgTimeout(20000);
-            producer.setRetryTimesWhenSendFailed(3);
-            producer.setCreateTopicKey(topic);
-            producer.start();
+//            String producerGroup = "PG-" + topic;
+//            producer = new DefaultMQProducer();
+//            producer.setNamesrvAddr(nameServerAddress);
+//            producer.setVipChannelEnabled(false);
+//            producer.setProducerGroup(producerGroup);
+//            producer.setSendMsgTimeout(20000);
+//            producer.setRetryTimesWhenSendFailed(3);
+//            producer.setCreateTopicKey(topic);
+//            producer.start();
             started = true;
         } catch (Exception e) {
             addError("Starting RocketmqLogbackAppender [" + this.getName()
@@ -158,14 +161,12 @@ public class Appender extends AppenderBase<ILoggingEvent> {
      */
     public synchronized void stop() {
         this.started = false;
-
         try {
             producer.shutdown();
         } catch (Exception e) {
             addError("Closeing RocketmqLogbackAppender [" + this.getName()
                     + "] nameServerAddress:" + nameServerAddress + " topic:" + topic, e);
         }
-
         // Help garbage collection
         producer = null;
     }
@@ -177,13 +178,6 @@ public class Appender extends AppenderBase<ILoggingEvent> {
             return false;
         }
         return true;
-    }
-
-    /**
-     * Set the pattern layout to format the log.
-     */
-    public void setLayout(Layout layout) {
-        this.layout = layout;
     }
 
     public void setTag(String tag) {

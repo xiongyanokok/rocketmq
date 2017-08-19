@@ -24,16 +24,11 @@
         </encoder>
     </appender>
 
-    <appender name="mqAppender1" class="com.hexun.rocketmq.logback.Appender">
+    <appender name="mqAppender1" class="com.hexun.rocketmq.logback.RocketmqJsonAppender">
         <tag>testapp</tag>
         <topic>LOG-TEST</topic>
         <producerGroup>PG-LOG-TEST</producerGroup>
         <nameServerAddress>10.4.63.103:9876;10.4.63.104:9876</nameServerAddress>
-        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-            <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
-                <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter"/>
-            </layout>
-        </encoder>
     </appender>
 
 
