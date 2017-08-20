@@ -17,10 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class RocketmqProducer {
 
@@ -109,7 +106,18 @@ public class RocketmqProducer {
 
     private boolean sendToMq(List<CanalEntry.Entry> entrys) {
         for (CanalEntry.Entry entry : entrys) {
+            //定义一个可序列化的推送给 rocketmq 的对象
+            CanalRocketmqEntry canalRocketmqEntry = new CanalRocketmqEntry();
             long executeTime = entry.getHeader().getExecuteTime();
+            // 变更数据的执行时间
+            canalRocketmqEntry.setExecuteTime(executeTime);
+            // 数据类型
+            canalRocketmqEntry.setEntryType(entry.getEntryType().getNumber());
+            // binlog 文件名
+            canalRocketmqEntry.setLogFileName(entry.getHeader().getLogfileName());
+            // binlog offset
+            canalRocketmqEntry.setLogFileOffset(entry.getHeader().getLogfileOffset());
+
             long delayTime = new Date().getTime() - executeTime;
 
             if (entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONBEGIN || entry.getEntryType() == CanalEntry.EntryType.TRANSACTIONEND) {
@@ -152,8 +160,14 @@ public class RocketmqProducer {
                     return false;
                 }
 
-                CanalEntry.EventType eventType = rowChange.getEventType();
 
+                CanalEntry.EventType eventType = rowChange.getEventType();
+                // ddl dml create index .....
+                canalRocketmqEntry.setEventType(rowChange.getEventType().getNumber());
+                // schema name 默认是数据库名
+                canalRocketmqEntry.setSchemaName(entry.getHeader().getSchemaName());
+                // table name
+                canalRocketmqEntry.setTableName(entry.getHeader().getTableName());
                 logger.info(row_format,
                         entry.getHeader().getLogfileName(),
                         String.valueOf(entry.getHeader().getLogfileOffset()), entry.getHeader().getSchemaName(),
@@ -167,16 +181,8 @@ public class RocketmqProducer {
 
                 StringBuilder columnBuilder = new StringBuilder("\n");
                 for (CanalEntry.RowData rowData : rowChange.getRowDatasList()) {
-                    if (eventType == CanalEntry.EventType.DELETE) {
-                        //打印删除
-                        printColumn(rowData.getBeforeColumnsList(), columnBuilder);
-                    } else if (eventType == CanalEntry.EventType.INSERT) {
-                        //打印新增
-                        printColumn(rowData.getAfterColumnsList(), columnBuilder);
-                    } else {
-                        //打印 update
-                        printColumn(rowData.getAfterColumnsList(), columnBuilder);
-                    }
+                    List<CanalRocketmqDbColumn> dbColumns = printColumns(eventType, rowData, columnBuilder);
+                    canalRocketmqEntry.addData(dbColumns);
                 }
                 logger.info(columnBuilder.toString());
                 //current 数据库名字
@@ -187,7 +193,7 @@ public class RocketmqProducer {
                 Long BINLOG_POSITION = entry.getHeader().getLogfileOffset();
                 if (ENABLED_DB.contains(DB_NAME)) {
                     try {
-                        SendResult sendResult = producer.send(TOPIC_PREFIX + DB_NAME.toUpperCase(), "POS" + BINLOG_POSITION, entry, TABLE_NAME);
+                        SendResult sendResult = producer.send(TOPIC_PREFIX + DB_NAME.toUpperCase(), "POS" + BINLOG_POSITION, canalRocketmqEntry, TABLE_NAME);
                         if (sendResult == null || !SendStatus.SEND_OK.equals(sendResult.getSendStatus())) {
                             return false;
                         }
@@ -204,17 +210,57 @@ public class RocketmqProducer {
     /**
      * print column
      *
-     * @param columns CanalEntry.Column
      * @param builder StringBuilder
      */
-    private void printColumn(List<CanalEntry.Column> columns, StringBuilder builder) {
-        for (CanalEntry.Column column : columns) {
-            builder.append(column.getName()).append(" : ").append(column.getValue());
-            builder.append("    type=").append(column.getMysqlType());
-            if (column.getUpdated()) {
-                builder.append("    update=").append(column.getUpdated());
+    private List<CanalRocketmqDbColumn> printColumns(CanalEntry.EventType eventType, CanalEntry.RowData rowData, StringBuilder builder) {
+        List<CanalRocketmqDbColumn> dbColumns = new ArrayList<>();
+        if (eventType == CanalEntry.EventType.DELETE) {
+            for (CanalEntry.Column column : rowData.getBeforeColumnsList()) {
+                dbColumns.add(printColumn(CanalEntry.EventType.DELETE, column, builder));
             }
-            builder.append(SEP);
+        } else if (eventType == CanalEntry.EventType.INSERT) {
+            for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
+                dbColumns.add(printColumn(CanalEntry.EventType.INSERT, column, builder));
+            }
+        } else if (eventType == CanalEntry.EventType.UPDATE) {
+            for (CanalEntry.Column column : rowData.getAfterColumnsList()) {
+                CanalRocketmqDbColumn dbColumn = printColumn(CanalEntry.EventType.UPDATE, column, builder);
+                for (CanalEntry.Column before : rowData.getBeforeColumnsList()) {
+                    if (before.getName().equals(dbColumn.getName())) {
+                        dbColumn.setBeforeValue(before.getValue());
+                    }
+                }
+                dbColumns.add(dbColumn);
+            }
         }
+        return dbColumns;
+    }
+
+    private CanalRocketmqDbColumn printColumn(CanalEntry.EventType eventType, CanalEntry.Column column, StringBuilder builder) {
+
+        builder.append(column.getName()).append(" : ").append(column.getValue());
+        builder.append("    type=").append(column.getMysqlType());
+        if (column.getUpdated()) {
+            builder.append("    update=").append(column.getUpdated());
+        }
+        builder.append(SEP);
+
+
+        CanalRocketmqDbColumn dbColumn = new CanalRocketmqDbColumn();
+        dbColumn.setName(column.getName());
+        if (eventType == CanalEntry.EventType.INSERT) {
+            dbColumn.setBeforeValue(null);
+            dbColumn.setAfterValue(column.getValue());
+        }
+        if (eventType == CanalEntry.EventType.DELETE) {
+            dbColumn.setBeforeValue(column.getValue());
+            dbColumn.setAfterValue(null);
+        }
+        if (eventType == CanalEntry.EventType.UPDATE) {
+            dbColumn.setBeforeValue(null);
+            dbColumn.setAfterValue(column.getValue());
+        }
+        dbColumn.setType(column.getMysqlType());
+        return dbColumn;
     }
 }

@@ -79,7 +79,7 @@ class CanalRocketmqClient {
     }
 
     private void process() {
-        int batchSize = 1024;
+        int batchSize = 1;
         while (running) {
             try {
                 connector.connect();
