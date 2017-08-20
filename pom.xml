@@ -7,7 +7,7 @@
     <version>1.1.0</version>
     <modules>
         <module>rocketmq-client</module>
-        <module>rocketmq-logger</module>
+        <module>rocketmq-canal</module>
     </modules>
     <packaging>pom</packaging>
     <name>rocketmq</name>
