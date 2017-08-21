@@ -261,6 +261,7 @@ public class RocketmqProducer {
             dbColumn.setAfterValue(column.getValue());
         }
         dbColumn.setType(column.getMysqlType());
+        dbColumn.setUpdated(column.getUpdated());
         return dbColumn;
     }
 }

@@ -5,6 +5,15 @@ public class CanalRocketmqDbColumn {
     String beforeValue;
     String afterValue;
     String type;
+    boolean updated;
+
+    public boolean isUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(boolean updated) {
+        this.updated = updated;
+    }
 
     public String getName() {
         return name;
