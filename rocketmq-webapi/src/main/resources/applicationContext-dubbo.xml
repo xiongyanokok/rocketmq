@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo" xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://code.alibabatech.com/schema/dubbo
+        http://code.alibabatech.com/schema/dubbo/dubbo.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:component-scan base-package="com.hexun"/>
+
+
+    <!-- 生产方应用名称-->
+    <dubbo:application name="webmq"/>
+
+    <!-- 使用zookeeper注册中心服务器地址 -->
+    <dubbo:registry protocol="zookeeper" address="10.0.202.63:2181"/>
+
+    <!-- here we demonstrate both annotation-based and xml-based configs -->
+    <!--<dubbo:annotation package="com.hexun.dubbo.*"/>-->
+
+    <!-- server默认是servlet -->
+    <!-- dubbo支持多种远程调用方式，例如
+         dubbo RPC（二进制序列化 + tcp协议）、
+         http invoker（二进制序列化 + http协议）、
+         hessian（二进制序列化 + http协议）、
+         WebServices （文本序列化 + http协议） -->
+    <!-- dubbox实现了REST风格远程调用（HTTP + JSON/XML) -->
+    <dubbo:protocol name="rest"
+                    threads="500"
+                    port="2234"
+                    contextpath=""
+                    server="servlet"
+                    accepts="500"
+                    keepalive="false"
+                    extension="com.hexun.dubbo.RestTraceFilter"
+    />
+
+    <!-- 同时支持dubbo和rest 多种协议 -->
+    <dubbo:service interface="com.hexun.rocketmq.web.WebMqService" ref="webMqServiceImpl" protocol="rest" validation="true" />
+
+    <bean id="messageProducer" class="com.hexun.rocketmq.client.MessageProducer" init-method="init" lazy-init="true">
+        <property name="topic" value="BenchmarkTest"/>
+        <property name="namesrvAddr" value="10.4.63.103:9876;10.4.63.104:9876"/>
+    </bean>
+</beans>

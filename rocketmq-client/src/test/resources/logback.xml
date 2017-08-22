@@ -24,33 +24,7 @@
         </encoder>
     </appender>
 
-    <appender name="mqAppender1" class="com.hexun.rocketmq.logback.RocketmqJsonAppender">
-        <tag>testapp</tag>
-        <topic>LOG-TEST</topic>
-        <producerGroup>PG-LOG-TEST</producerGroup>
-        <nameServerAddress>10.4.63.103:9876;10.4.63.104:9876</nameServerAddress>
-    </appender>
-
-
-
-
-
-    <logger name="org.springframework" level="INFO"/>
-    <logger name="com.alibaba.dubbo" level="DEBUG"/>
-    <logger name="org.apache.zookeeper" level="INFO"/>
-    <logger name="org.mybatis" level="DEBUG"/>
-    <logger name="com.ibatis" level="DEBUG"/>
-    <logger name="com.ibatis.spring.jdbc.SimpleDataSource" level="DEBUG"/>
-    <logger name="com.ibatis.spring.jdbc.ScriptRunner" level="DEBUG"/>
-    <logger name="com.ibatis.sqlmap.engine.impl.SqlMapClientDelegate" level="DEBUG"/>
-    <logger name="java.sql.Connection" level="DEBUG"/>
-    <logger name="java.sql.Statement" level="DEBUG"/>
-    <logger name="java.sql.PreparedStatement" level="DEBUG"/>
-    <logger name="com.baidu.disconf" level="DEBUG"/>
-    
-    
     <root level="DEBUG">
         <appender-ref ref="console"/>
-        <appender-ref ref="mqAppender1"/>
     </root>
 </configuration>

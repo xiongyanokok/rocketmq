@@ -1,6 +1,8 @@
 package com.hexun.rocketmq.client;
 
+import com.hexun.common.utils.IpUtils;
 import com.hexun.common.utils.JsonUtils;
+import com.hexun.common.utils.StringUtils;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
@@ -30,6 +32,11 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
     private String topic;
 
     /**
+     * 健康检查
+     */
+    private HealthChecker checker;
+
+    /**
      * 设置 topic
      *
      * @param topic topic
@@ -54,15 +61,19 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
      */
     public void init() throws MQClientException {
         setVipChannelEnabled(false);
-        setProducerGroup("PG-" + topic);
+        if (StringUtils.isBlank(getProducerGroup()) || "DEFAULT_PRODUCER".equals(getProducerGroup())) {
+            setProducerGroup("PG-" + topic);
+        }
         if (getSendMsgTimeout() <= 0) {
             setSendMsgTimeout(10000);
         }
         if (getRetryTimesWhenSendFailed() <= 0) {
             setRetryTimesWhenSendFailed(1);
         }
+        setClientIP(IpUtils.getHostIP());
         setCreateTopicKey(topic);
         start();
+        checker = new HealthChecker(this);
         log.info("ROCKETMQ Producer {} start , IP = ", getProducerGroup(), getClientIP());
     }
 
@@ -119,7 +130,7 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
         );
 
         SendResult sendResult = send(msg);
-        log.info("\n\nMSG={}\nSEND RESULT", new String(msgBytes, Charset.forName("UTF-8")), sendResult);
+        log.info("\n\nMSG={}\nSEND RESULT{}", new String(msgBytes, Charset.forName("UTF-8")), sendResult);
         return sendResult;
     }
 
@@ -182,7 +193,7 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
         );
 
         sendOneway(msg);
-        log.info("rocketmq sendOneway key={}", key);
+        log.info("rocketmq send one way key={}", key);
     }
 
     /**
@@ -200,12 +211,12 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
 
             @Override
             public void onSuccess(SendResult sendResult) {
-                log.info("\n\nmsg={}\nmsgId={}\nstatus={}", msg, sendResult.getMsgId(), sendResult.getSendStatus());
+                log.info("\n\nrocketmq send msg={}\nmsgId={}\nstatus={}", msg, sendResult.getMsgId(), sendResult.getSendStatus());
             }
 
             @Override
             public void onException(Throwable e) {
-                log.error("\n\nmsg={}\n发送消息错误", msg, e);
+                log.error("\n\nrocketmq send msg={}\n发送消息错误", msg, e);
             }
         };
     }

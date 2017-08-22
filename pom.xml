@@ -8,9 +8,23 @@
     <modules>
         <module>rocketmq-client</module>
         <module>rocketmq-canal</module>
+        <module>rocketmq-webapi</module>
     </modules>
     <packaging>pom</packaging>
     <name>rocketmq</name>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>nexus</id>
+            <name>Nexus</name>
+            <url>http://10.0.202.86:8081/nexus/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
     <repositories>
         <repository>
             <id>nexus</id>
@@ -26,12 +40,20 @@
     </repositories>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring.version>3.1.4.RELEASE</spring.version>
+        <junit.version>4.10</junit.version>
+        <hwcommon.version>1.4.6</hwcommon.version>
+        <dubbo-ext.version>1.1.1</dubbo-ext.version>
+        <validation.version>1.0.0.GA</validation.version>
+        <javax.ws.version>2.0</javax.ws.version>
+        <rocketmq.version>4.1.0-incubating</rocketmq.version>
     </properties>
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.2</version>
                 <configuration>
                     <source>1.7</source> <!-- 源代码使用的开发版本 -->
                     <target>1.7</target> <!-- 需要生成的目标class文件的编译版本 -->
@@ -41,6 +63,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -70,41 +93,77 @@
                 <version>1.4.6</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.rocketmq</groupId>
+                <groupId>com.hexun</groupId>
                 <artifactId>rocketmq-client</artifactId>
-                <version>4.1.0-incubating</version>
+                <version>${project.version}</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-test</artifactId>
+                <version>${spring.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <!-- spring -->
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-web</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-webmvc</artifactId>
+                <version>${spring.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-context</artifactId>
-                <version>3.1.4.RELEASE</version>
-                <scope>test</scope>
+                <version>${spring.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-context-support</artifactId>
-                <version>3.1.4.RELEASE</version>
-                <scope>test</scope>
+                <version>${spring.version}</version>
             </dependency>
+            <!-- spring -->
+
             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-test</artifactId>
-                <version>3.1.4.RELEASE</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.12</version>
-                <scope>test</scope>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>3.1.0</version>
+                <scope>provided</scope>
             </dependency>
 
+            <!-- dubbo -->
+            <dependency>
+                <groupId>com.hexun</groupId>
+                <artifactId>dubbo-ext</artifactId>
+                <version>${dubbo-ext.version}</version>
+            </dependency>
+            <!-- dubbo -->
+            <!-- validation -->
+            <dependency>
+                <groupId>javax.validation</groupId>
+                <artifactId>validation-api</artifactId>
+                <version>${validation.version}</version>
+            </dependency>
+            <!-- validation -->
             <dependency>
                 <groupId>org.apache.rocketmq</groupId>
-                <artifactId>rocketmq-logappender</artifactId>
-                <version>4.1.0-incubating</version>
+                <artifactId>rocketmq-client</artifactId>
+                <version>${rocketmq.version}</version>
             </dependency>
-
         </dependencies>
     </dependencyManagement>
 

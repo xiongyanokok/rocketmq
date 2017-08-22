@@ -104,6 +104,12 @@ public class RocketmqProducer {
         return entry.getHeader().getLogfileName() + ":" + entry.getHeader().getLogfileOffset() + ":" + entry.getHeader().getExecuteTime() + "(" + format.format(date) + ")";
     }
 
+    /**
+     * Entry 发送到 rocketmq
+     *
+     * @param entrys List<CanalEntry.Entry>
+     * @return 是否成功
+     */
     private boolean sendToMq(List<CanalEntry.Entry> entrys) {
         for (CanalEntry.Entry entry : entrys) {
             //定义一个可序列化的推送给 rocketmq 的对象
