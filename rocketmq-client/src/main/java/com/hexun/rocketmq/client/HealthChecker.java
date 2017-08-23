@@ -11,6 +11,10 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * 健康检查
+ * 每30秒检测一次 Producer 状态
+ */
 class HealthChecker {
     /**
      * logger
@@ -35,34 +39,18 @@ class HealthChecker {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                if (errorTimes.get() >= 3) {
-                    try {
-                        producer.shutdown();
-                        logger.error("producer 关闭");
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        logger.error("producer 正在启动");
-                        producer.start();
-                    } catch (MQClientException e) {
-                        e.printStackTrace();
-                    }
-                }
-
                 try {
                     List<MessageQueue> messageQueues = producer.fetchPublishMessageQueues(producer.getTopic());
                     if (messageQueues == null || messageQueues.isEmpty()) {
-                        logger.error("健康检查:TOPIC={},队列为空", producer.getTopic());
                         errorTimes.addAndGet(1);
+                        logger.error("健康检查:TOPIC={},队列为空,失败次数{}", producer.getTopic(), errorTimes.get());
                     } else {
-                        logger.error("健康检查:TOPIC={},OK", producer.getTopic());
+                        logger.info("健康检查:TOPIC={},OK", producer.getTopic());
                     }
-                } catch (MQClientException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
-                    logger.error("健康检查:TOPIC={},连接异常", producer.getTopic());
                     errorTimes.addAndGet(1);
+                    logger.error("健康检查:TOPIC={},连接异常,失败次数{}", producer.getTopic(), errorTimes.get(), e);
                 }
             }
         }, 5 * 60 * 1000, 30 * 1000);

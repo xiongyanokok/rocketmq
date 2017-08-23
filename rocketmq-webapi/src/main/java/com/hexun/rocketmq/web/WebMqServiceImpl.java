@@ -14,7 +14,7 @@ import javax.ws.rs.core.MediaType;
 
 @Service
 @Path("mq")
-@Consumes({MediaType.APPLICATION_JSON, MediaType.TEXT_XML})
+@Consumes({MediaType.WILDCARD, MediaType.TEXT_XML})
 @Produces({ContentType.APPLICATION_JSON_UTF_8, ContentType.TEXT_XML_UTF_8})
 public class WebMqServiceImpl implements WebMqService {
     /**
