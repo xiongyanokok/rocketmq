@@ -13,19 +13,19 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"/application*.xml"})
 public class MessageProducerTest {
-//
-//    @Autowired
-//    MessageProducer producer;
 
-//    @Test
-//    public void testAddAppointment() throws Exception {
-//        for (int i = 0; i < 1000; i++) {
-//            System.out.println(i);
-//            String now = DateUtils.now();
-//            producer.sendAsync(i + now, i + now, now);
-//        }
-//        Thread.sleep(2000000);
-//    }
+    @Autowired
+    MessageProducer producer;
+
+    @Test
+    public void testAddAppointment() throws Exception {
+        for (int i = 0; i < 1000; i++) {
+            System.out.println(i);
+            String now = DateUtils.now();
+            producer.sendAsync(i + now, i + now, now);
+        }
+        Thread.sleep(2000000);
+    }
 
 
     @Test

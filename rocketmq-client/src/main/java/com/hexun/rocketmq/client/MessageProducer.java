@@ -3,18 +3,23 @@ package com.hexun.rocketmq.client;
 import com.hexun.common.utils.IpUtils;
 import com.hexun.common.utils.JsonUtils;
 import com.hexun.common.utils.StringUtils;
+import com.hexun.rocketmq.client.utils.ListSplitter;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
+import org.apache.rocketmq.client.producer.MessageQueueSelector;
 import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 
 import java.nio.charset.Charset;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * 消息生产者
@@ -30,11 +35,6 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
      * topic 必须设置
      */
     private String topic;
-
-    /**
-     * 健康检查
-     */
-    private HealthChecker checker;
 
     /**
      * 设置 topic
@@ -73,7 +73,8 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
         setClientIP(IpUtils.getHostIP());
         setCreateTopicKey(topic);
         start();
-        checker = new HealthChecker(this);
+        //健康检查
+        HealthChecker.HealthChecker(this);
         log.info("ROCKETMQ Producer {} start , IP = ", getProducerGroup(), getClientIP());
     }
 
@@ -87,12 +88,31 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
         this.shutdown();
     }
 
+
+    public Message buildMsg(String key, Object messageObject) {
+        return buildMsg(this.topic, key, messageObject, "");
+    }
+
+    public Message buildMsg(String topic, String key, Object messageObject) {
+        return buildMsg(topic, key, messageObject, "");
+    }
+
+    public Message buildMsg(String topic, String key, Object messageObject, String tag) {
+        byte[] msgBytes = JsonUtils.obj2Bytes(messageObject);
+
+        return new Message(topic,// topic
+                tag,// tag
+                key,// keys
+                msgBytes
+        );
+    }
+
     /**
-     * send sync with tag
+     * send sync with key
      *
      * @param key           消息的主键,以便后续查询
      * @param messageObject 消息体
-     * @return
+     * @return SendResult
      * @throws MQClientException    MQClientException
      * @throws RemotingException    RemotingException
      * @throws MQBrokerException    MQBrokerException
@@ -109,7 +129,7 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
      * @param key           消息的主键,以便后续查询
      * @param messageObject 消息体
      * @param tag           标签
-     * @return
+     * @return SendResult
      * @throws MQClientException    MQClientException
      * @throws RemotingException    RemotingException
      * @throws MQBrokerException    MQBrokerException
@@ -121,16 +141,11 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
 
 
     public SendResult send(String topic, String key, Object messageObject, String tag) throws MQClientException, RemotingException, MQBrokerException, InterruptedException {
-        byte[] msgBytes = JsonUtils.obj2Bytes(messageObject);
-
-        Message msg = new Message(topic,// topic
-                tag,// tag
-                key,// keys
-                msgBytes
-        );
-
+        Message msg = buildMsg(topic, key, messageObject, tag);
         SendResult sendResult = send(msg);
-        log.info("\n\nMSG={}\nSEND RESULT{}", new String(msgBytes, Charset.forName("UTF-8")), sendResult);
+        if (log.isInfoEnabled()) {
+            log.info("\n\nMSG={}\nSEND RESULT{}", JsonUtils.obj2String(messageObject), sendResult);
+        }
         return sendResult;
     }
 
@@ -166,9 +181,9 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
      * @param key           消息的主键,以便后续查询
      * @param messageObject 消息体
      * @param tag           标签
-     * @throws MQClientException
-     * @throws RemotingException
-     * @throws InterruptedException
+     * @throws MQClientException    MQClientException
+     * @throws RemotingException    RemotingException
+     * @throws InterruptedException InterruptedException
      */
     public void sendAsync(String key, Object messageObject, String tag) throws MQClientException, RemotingException, InterruptedException {
         send(key, messageObject, tag, createCallback(messageObject));
@@ -199,8 +214,8 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
     /**
      * 创建异步回调信息
      *
-     * @param message
-     * @return
+     * @param message 消息体
+     * @return SendCallback
      */
     private SendCallback createCallback(final Object message) {
         return new SendCallback() {
@@ -219,5 +234,78 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
                 log.error("\n\nrocketmq send msg={}\n发送消息错误", msg, e);
             }
         };
+    }
+
+
+    /**
+     * 顺序发消息,默认发送到第一个queue
+     *
+     * @param key           key
+     * @param messageObject 消息对象
+     * @return 发送结果
+     */
+    public SendResult sendOrderly(String key, Object messageObject) {
+        return sendOrderly(topic, key, messageObject, "");
+    }
+
+    /**
+     * 顺序发消息,默认发送到第一个queue
+     *
+     * @param key           key
+     * @param messageObject 消息对象
+     * @param tag           标签
+     * @return 发送结果
+     */
+    public SendResult sendOrderly(String key, Object messageObject, String tag) {
+        return sendOrderly(topic, key, messageObject, tag);
+    }
+
+
+    /**
+     * 顺序发消息,默认发送到第一个queue
+     *
+     * @param topic         topic
+     * @param key           key
+     * @param messageObject 消息对象
+     * @param tag           标签
+     * @return 发送结果
+     */
+    public SendResult sendOrderly(String topic, String key, Object messageObject, String tag) {
+        byte[] msgBytes = JsonUtils.obj2Bytes(messageObject);
+
+        Message msg = new Message(topic,// topic
+                tag,// tag
+                key,// keys
+                msgBytes
+        );
+        SendResult sendResult = null;
+        try {
+            sendResult = send(msg, new MessageQueueSelector() {
+                @Override
+                public MessageQueue select(List<MessageQueue> mqs, Message msg, Object arg) {
+                    return mqs.get(0);
+                }
+            }, topic);
+        } catch (Exception e) {
+            log.error("TOPIC={},KEY={},TAG={}", topic, key, tag, e);
+        }
+        return sendResult;
+    }
+
+    /**
+     * 批量发送消息,允许有丢失
+     *
+     * @param messages 消息集合
+     */
+    public void batchSend(List<Message> messages) {
+        ListSplitter splitter = new ListSplitter(messages);
+        while (splitter.hasNext()) {
+            try {
+                List<Message> listItem = splitter.next();
+                send(listItem);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
+        }
     }
 }

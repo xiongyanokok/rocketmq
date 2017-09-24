@@ -22,17 +22,17 @@ public class MessageConsumer extends DefaultMQPushConsumer implements Disposable
     /**
      * topic
      */
-    String topic;
+    private String topic;
 
     /**
      * sub expression
      */
-    String subExpression;
+    private String subExpression;
 
     /**
      * 消息消费 Listener
      */
-    MessageListener messageListener;
+    private MessageListener messageListener;
 
     /**
      * 设置 topic

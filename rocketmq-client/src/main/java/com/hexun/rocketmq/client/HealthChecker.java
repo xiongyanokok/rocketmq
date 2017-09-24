@@ -1,7 +1,5 @@
 package com.hexun.rocketmq.client;
 
-import org.apache.rocketmq.client.exception.MQClientException;
-import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.common.message.MessageQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,23 +17,19 @@ class HealthChecker {
     /**
      * logger
      */
-    Logger logger = LoggerFactory.getLogger(this.getClass());
-    /**
-     * timer
-     */
-    Timer timer;
+    private static Logger logger = LoggerFactory.getLogger(HealthChecker.class);
     /**
      * 错误次数
      */
-    static AtomicInteger errorTimes = new AtomicInteger(0);
+    private static AtomicInteger errorTimes = new AtomicInteger(0);
 
     /**
      * 健康检查
      *
      * @param producer MessageProducer
      */
-    HealthChecker(final MessageProducer producer) {
-        timer = new Timer();
+    public static void HealthChecker(final MessageProducer producer) {
+        Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -48,7 +42,6 @@ class HealthChecker {
                         logger.info("健康检查:TOPIC={},OK", producer.getTopic());
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
                     errorTimes.addAndGet(1);
                     logger.error("健康检查:TOPIC={},连接异常,失败次数{}", producer.getTopic(), errorTimes.get(), e);
                 }

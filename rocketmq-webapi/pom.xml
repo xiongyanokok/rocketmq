@@ -46,6 +46,7 @@
         <dependency>
             <groupId>com.hexun</groupId>
             <artifactId>hwcommon</artifactId>
+            <classifier>jdk8</classifier>
         </dependency>
         <dependency>
             <groupId>com.hexun</groupId>

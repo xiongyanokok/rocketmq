@@ -8,10 +8,10 @@
 
     <context:component-scan base-package="com.hexun"/>
 
-    <!--<bean id="producerClientConfig" class="com.hexun.rocketmq.client.MessageProducer" init-method="init" lazy-init="true">-->
-        <!--<property name="topic" value="yuanyue"/>-->
-        <!--<property name="namesrvAddr" value="10.4.63.103:9876;10.4.63.104:9876"/>-->
-    <!--</bean>-->
+    <bean id="producerClientConfig" class="com.hexun.rocketmq.client.MessageProducer" init-method="init" lazy-init="true">
+        <property name="topic" value="yuanyue"/>
+        <property name="namesrvAddr" value="10.4.63.105:9876;10.4.63.104:9876"/>
+    </bean>
 
     <!--<bean class="com.hexun.rocketmq.client.MessageConsumer" init-method="init">-->
         <!--<property name="namesrvAddr" value="10.4.63.103:9876;10.4.63.104:9876"/>-->

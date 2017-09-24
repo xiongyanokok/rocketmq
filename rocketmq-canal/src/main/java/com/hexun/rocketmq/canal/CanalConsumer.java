@@ -41,14 +41,12 @@ public class CanalConsumer {
                 public void run() {
                     logger.info("## stopping the canal & rocketmq  client");
                     try {
-                        if (canalRocketmqClient != null)
-                            canalRocketmqClient.stop();
-                    } catch (Throwable e) {
+                        canalRocketmqClient.stop();
+                    } catch (Exception e) {
                         logger.warn("##something goes wrong when stopping canal:\n{}", ExceptionUtils.getFullStackTrace(e));
                     }
                     try {
-                        if (messageProducer != null)
-                            messageProducer.destroy();
+                        messageProducer.destroy();
                     } catch (Exception e) {
                         logger.warn("##something goes wrong when stopping rocketmq producer:\n{}", ExceptionUtils.getFullStackTrace(e));
                     }
