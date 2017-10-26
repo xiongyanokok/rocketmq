@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 CONTAINER_NAME=rocketmq-webapi
-array=("10.4.63.105" "10.4.63.106")
+array=("10.4.63.104")
 for data in ${array[@]}
 do
     DOCKER_CMD="docker --host=${data}:2375 "
@@ -14,7 +14,7 @@ do
            --env SERVER_IP=${data} \
            --volume /opt/docker/${CONTAINER_NAME}/tomcat/logs:/usr/local/tomcat/logs \
            --name ${CONTAINER_NAME} \
-           --publish 8371:2234/tcp \
+           --publish 9876:2234/tcp \
            --expose 8080/tcp \
            --restart always \
            --detach \
