@@ -15,7 +15,6 @@ package-test:
   stage: package
   script:
     - echo `pwd`
-    - chmod +x ./rocketmq-webapi/apidoc.sh
     - mvn package -Ptest_with_doc -DskipTests=true
     - find .|grep war|xargs -i -t mv {} ../${CI_PROJECT_ID}${CI_BUILD_REF_NAME}/
   only:
