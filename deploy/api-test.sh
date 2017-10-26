@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 CONTAINER_NAME=rocketmq-webapi
-array=("10.4.63.103" "10.4.63.104:9876" )
+array=("10.4.63.103" "10.4.63.104:9876")
 for data in ${array[@]}
 do
     DOCKER_CMD="docker --host=${data}:2375 "
