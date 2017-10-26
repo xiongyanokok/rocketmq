@@ -26,14 +26,6 @@ package-prd:
     - find .|grep war|xargs -i -t mv {} ../${CI_PROJECT_ID}${CI_BUILD_REF_NAME}/
   only:
     - master
-deploy-test-task:
-  stage: deploy
-  only:
-    - test
-  when: manual
-  script:
-    - echo "deploy task test"
-    - sh ./deploy/task-test.sh
 deploy-test-api:
   stage: deploy
   only:
@@ -42,14 +34,6 @@ deploy-test-api:
   script:
     - echo "deploy api test"
     - sh ./deploy/api-test.sh
-deploy-prd-task:
-  stage: deploy
-  only:
-    - master
-  when: manual
-  script:
-    - echo "deploy task prd"
-    - sh ./deploy/task-prd.sh
 deploy-prd-api:
   stage: deploy
   only:
