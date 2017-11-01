@@ -16,9 +16,6 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
-
-import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -88,23 +85,49 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
         this.shutdown();
     }
 
-
+    /**
+     * build msg
+     * @param key key
+     * @param messageObject 对象
+     * @return Message
+     */
     public Message buildMsg(String key, Object messageObject) {
         return buildMsg(this.topic, key, messageObject, "");
     }
 
+    /**
+     * build msg
+     * @param key key
+     * @param messageObject 对象
+     * @return Message
+     */
     public Message buildMsg(String topic, String key, Object messageObject) {
         return buildMsg(topic, key, messageObject, "");
     }
 
-    public Message buildMsg(String topic, String key, Object messageObject, String tag) {
-        byte[] msgBytes = JsonUtils.obj2Bytes(messageObject);
-
+    /**
+     * build msg
+     * @param key key
+     * @param messageObject byte[] 数组
+     * @return Message
+     */
+    public Message buildBytesMsg(String topic, String key, byte[] messageObject, String tag) {
         return new Message(topic,// topic
                 tag,// tag
                 key,// keys
-                msgBytes
+                messageObject
         );
+    }
+
+    /**
+     * build msg
+     * @param key key
+     * @param messageObject 对象
+     * @return Message
+     */
+    public Message buildMsg(String topic, String key, Object messageObject, String tag) {
+        byte[] msgBytes = JsonUtils.obj2Bytes(messageObject);
+        return buildBytesMsg(topic, key, msgBytes, tag);
     }
 
     /**
@@ -141,6 +164,15 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
 
 
     public SendResult send(String topic, String key, Object messageObject, String tag) throws MQClientException, RemotingException, MQBrokerException, InterruptedException {
+        Message msg = buildMsg(topic, key, messageObject, tag);
+        SendResult sendResult = send(msg);
+        if (log.isInfoEnabled()) {
+            log.info("\n\nMSG={}\nSEND RESULT{}", JsonUtils.obj2String(messageObject), sendResult);
+        }
+        return sendResult;
+    }
+
+    public SendResult send(String topic, String key, byte[] messageObject, String tag) throws MQClientException, RemotingException, MQBrokerException, InterruptedException {
         Message msg = buildMsg(topic, key, messageObject, tag);
         SendResult sendResult = send(msg);
         if (log.isInfoEnabled()) {
