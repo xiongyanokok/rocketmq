@@ -13,8 +13,8 @@
     <!-- 生产方应用名称-->
     <dubbo:application name="webmq"/>
 
-    <!-- 使用zookeeper注册中心服务器地址 -->
-    <dubbo:registry protocol="zookeeper" address="10.0.202.63:2181"/>
+    <!--&lt;!&ndash; 使用zookeeper注册中心服务器地址 &ndash;&gt;-->
+    <!--<dubbo:registry protocol="zookeeper" address="10.0.202.63:2181"/>-->
 
     <!-- here we demonstrate both annotation-based and xml-based configs -->
     <!--<dubbo:annotation package="com.hexun.dubbo.*"/>-->
@@ -37,7 +37,7 @@
     />
 
     <!-- 同时支持dubbo和rest 多种协议 -->
-    <dubbo:service interface="com.hexun.rocketmq.web.WebMqService" ref="webMqServiceImpl" protocol="rest" validation="true" />
+    <dubbo:service registry="N/A" interface="com.hexun.rocketmq.web.WebMqService" ref="webMqServiceImpl" protocol="rest" validation="true" />
 
     <bean id="messageProducer" class="com.hexun.rocketmq.client.MessageProducer" init-method="init" lazy-init="true">
         <property name="topic" value="BenchmarkTest"/>

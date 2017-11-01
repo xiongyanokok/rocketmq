@@ -74,7 +74,7 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
         setCreateTopicKey(topic);
         start();
         //健康检查
-        HealthChecker.HealthChecker(this);
+        HealthChecker.healthCheck(this);
         log.info("ROCKETMQ Producer {} start , IP = ", getProducerGroup(), getClientIP());
     }
 
