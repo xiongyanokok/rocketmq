@@ -5,15 +5,11 @@ import com.alibaba.otter.canal.protocol.Message;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.hexun.rocketmq.client.MessageProducer;
 import org.apache.commons.lang.SystemUtils;
-import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.client.producer.SendStatus;
-import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.text.SimpleDateFormat;
@@ -24,41 +20,41 @@ public class RocketmqProducer {
     /**
      * logger
      */
-    protected Logger logger = LoggerFactory.getLogger(this.getClass());
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     /**
      * 消息生产者
      */
-    MessageProducer producer;
+    private MessageProducer producer;
     /**
      * 分隔符
      */
     private static final String SEP = SystemUtils.LINE_SEPARATOR;
     private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private static String context_format = null;
-    private static String row_format = null;
-    private static String transaction_format = null;
-    private static String TOPIC_PREFIX = null;
+    private static String contextFormat = null;
+    private static String rowFormat = null;
+    private static String transactionFormat = null;
+    private static String topicPrefix = null;
     /**
      * 启用的数据库名字
      */
-    private static HashSet<String> ENABLED_DB = new HashSet<>();
+    private static HashSet<String> enabledDb = new HashSet<>();
 
     static {
-        context_format = SEP + "****************************************************" + SEP;
-        context_format += "* Batch Id: [{}] ,count : [{}] , memsize : [{}] , Time : {}" + SEP;
-        context_format += "* Start : [{}] " + SEP;
-        context_format += "* End : [{}] " + SEP;
-        context_format += "****************************************************" + SEP;
+        contextFormat = SEP + "****************************************************" + SEP;
+        contextFormat += "* Batch Id: [{}] ,count : [{}] , memsize : [{}] , Time : {}" + SEP;
+        contextFormat += "* Start : [{}] " + SEP;
+        contextFormat += "* End : [{}] " + SEP;
+        contextFormat += "****************************************************" + SEP;
 
-        row_format = SEP
+        rowFormat = SEP
                 + "----------------> binlog[{}:{}] , name[{},{}] , eventType : {} , executeTime : {} , delay : {}ms"
                 + SEP;
 
-        transaction_format = SEP + "================> binlog[{}:{}] , executeTime : {} , delay : {}ms" + SEP;
+        transactionFormat = SEP + "================> binlog[{}:{}] , executeTime : {} , delay : {}ms" + SEP;
         String[] dbNames = ConfigUtils.getString("dbNames").split(",");
-        ENABLED_DB.addAll(Arrays.asList(dbNames));
-        TOPIC_PREFIX = ConfigUtils.getString("topicPrefix");
+        enabledDb.addAll(Arrays.asList(dbNames));
+        topicPrefix = ConfigUtils.getString("topicPrefix");
     }
 
     public RocketmqProducer(MessageProducer messageProducer) throws MQClientException {
@@ -95,7 +91,7 @@ public class RocketmqProducer {
             startPosition = buildPositionForDump(message.getEntries().get(0));
             endPosition = buildPositionForDump(message.getEntries().get(message.getEntries().size() - 1));
         }
-        logger.info(context_format, batchId, size, memsize, format.format(new Date()), startPosition, endPosition);
+        logger.info(contextFormat, batchId, size, memsize, format.format(new Date()), startPosition, endPosition);
     }
 
     private String buildPositionForDump(CanalEntry.Entry entry) {
@@ -135,10 +131,11 @@ public class RocketmqProducer {
                         throw new RuntimeException("parse event has an error , data:" + entry.toString(), e);
                     }
                     // 打印事务头信息，执行的线程id，事务耗时
-                    logger.info(transaction_format,
+                    logger.info(transactionFormat,
                             entry.getHeader().getLogfileName(),
-                            String.valueOf(entry.getHeader().getLogfileOffset()),
-                            String.valueOf(entry.getHeader().getExecuteTime()), String.valueOf(delayTime));
+                            entry.getHeader().getLogfileOffset(),
+                            entry.getHeader().getExecuteTime(),
+                            delayTime);
                     logger.info(" BEGIN ----> Thread id: {}", begin.getThreadId());
                 } else {
                     CanalEntry.TransactionEnd end;
@@ -148,7 +145,7 @@ public class RocketmqProducer {
                         throw new RuntimeException("parse event has an error , data:" + entry.toString(), e);
                     }
                     // 打印事务提交信息，事务id
-                    logger.info("----------------\n END ----> transaction id: {}" + transaction_format,
+                    logger.info("----------------\n END ----> transaction id: {}" + transactionFormat,
                             end.getTransactionId(),
                             entry.getHeader().getLogfileName(),
                             String.valueOf(entry.getHeader().getLogfileOffset()),
@@ -174,11 +171,11 @@ public class RocketmqProducer {
                 canalRocketmqEntry.setSchemaName(entry.getHeader().getSchemaName());
                 // table name
                 canalRocketmqEntry.setTableName(entry.getHeader().getTableName());
-                logger.info(row_format,
+                logger.info(rowFormat,
                         entry.getHeader().getLogfileName(),
-                        String.valueOf(entry.getHeader().getLogfileOffset()), entry.getHeader().getSchemaName(),
+                        entry.getHeader().getLogfileOffset(), entry.getHeader().getSchemaName(),
                         entry.getHeader().getTableName(), eventType,
-                        String.valueOf(entry.getHeader().getExecuteTime()), String.valueOf(delayTime));
+                        entry.getHeader().getExecuteTime(), delayTime);
 
                 if (eventType == CanalEntry.EventType.QUERY || rowChange.getIsDdl()) {
                     logger.info(" sql ----> " + rowChange.getSql() + SEP);
@@ -192,14 +189,14 @@ public class RocketmqProducer {
                 }
                 logger.info(columnBuilder.toString());
                 //current 数据库名字
-                String DB_NAME = entry.getHeader().getSchemaName();
+                String dbName = entry.getHeader().getSchemaName();
                 //current 表名
-                String TABLE_NAME = entry.getHeader().getTableName();
+                String tableName = entry.getHeader().getTableName();
                 //current position
-                Long BINLOG_POSITION = entry.getHeader().getLogfileOffset();
-                if (ENABLED_DB.contains(DB_NAME)) {
+                Long binlogPosition = entry.getHeader().getLogfileOffset();
+                if (enabledDb.contains(dbName)) {
                     try {
-                        SendResult sendResult = producer.send(TOPIC_PREFIX + DB_NAME.toUpperCase(), "POS" + BINLOG_POSITION, canalRocketmqEntry, TABLE_NAME);
+                        SendResult sendResult = producer.sendOrderly(topicPrefix + dbName.toUpperCase(), "POS" + binlogPosition, canalRocketmqEntry, tableName);
                         if (sendResult == null || !SendStatus.SEND_OK.equals(sendResult.getSendStatus())) {
                             return false;
                         }

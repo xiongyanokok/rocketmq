@@ -12,6 +12,10 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
+/**
+ * web生产者
+ * @author yuanyue@staff.hexun.com
+ */
 @Service
 @Path("mq")
 @Consumes({MediaType.WILDCARD, MediaType.TEXT_XML})
@@ -30,14 +34,16 @@ public class WebMqServiceImpl implements WebMqService {
 
     @Path("post")
     @POST
+    @Override
     public Result postMsg(@FormParam("topic") String topic,
                           @FormParam("tag") String tag,
                           @FormParam("key") String key,
                           @FormParam("body") String body) {
         try {
             SendResult sendResult = messageProducer.send(topic, key, body, tag);
-            if (sendResult != null && SendStatus.SEND_OK.equals(sendResult.getSendStatus()))
+            if (sendResult != null && SendStatus.SEND_OK.equals(sendResult.getSendStatus())) {
                 return Result.success(sendResult);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
