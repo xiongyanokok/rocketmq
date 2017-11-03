@@ -15,14 +15,10 @@ do
            --volume /opt/docker/${CONTAINER_NAME}/tomcat/logs:/usr/local/tomcat/logs \
            --name ${CONTAINER_NAME} \
            --publish 8371:2234/tcp \
-           --expose 8080/tcp \
+           --expose 2234/tcp \
            --restart always \
            --detach \
-           docker-registry.hexun.com/hexunzq/tomcat8:jdk8-pinpoint
+           docker-registry.hexun.com/hexunzq/tomcat8:jdk8-standard
     echo "COPYING ${data}"
     ${DOCKER_CMD} cp ${WAR_SOURCE} ${CONTAINER_NAME}:/usr/local/tomcat/webapps/ROOT.war
 done
-
-
-
-
