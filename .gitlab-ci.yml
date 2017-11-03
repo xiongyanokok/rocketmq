@@ -1,0 +1,44 @@
+image: docker-registry.hexun.com/hexunzq/docker:1.8.3
+stages:
+  - clean
+  - package
+  - deploy
+clean:
+  stage: clean
+  script:
+    - mkdir -p ../${CI_PROJECT_ID}${CI_BUILD_REF_NAME}
+    - rm -rf ../${CI_PROJECT_ID}${CI_BUILD_REF_NAME}/*
+  only:
+    - master
+    - test
+package-test:
+  stage: package
+  script:
+    - echo `pwd`
+    - mvn package -Ptest_with_doc -DskipTests=true
+    - find .|grep war|xargs -i -t mv {} ../${CI_PROJECT_ID}${CI_BUILD_REF_NAME}/
+  only:
+    - test
+package-prd:
+  stage: package
+  script:
+    - mvn package -Pproduct -DskipTests=true
+    - find .|grep war|xargs -i -t mv {} ../${CI_PROJECT_ID}${CI_BUILD_REF_NAME}/
+  only:
+    - master
+deploy-test-api:
+  stage: deploy
+  only:
+    - test
+  when: manual
+  script:
+    - echo "deploy api test"
+    - sh ./deploy/api-test.sh
+deploy-prd-api:
+  stage: deploy
+  only:
+    - master
+  when: manual
+  script:
+    - echo "deploy api prd"
+    - sh ./deploy/api-prd.sh

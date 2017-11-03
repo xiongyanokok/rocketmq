@@ -81,5 +81,3 @@ local.properties
 .scala_dependencies
 .worksheet
 target
-.idea
-*.iml
