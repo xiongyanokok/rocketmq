@@ -9,11 +9,11 @@ do
     echo "REMOVING ${data}"
     ${DOCKER_CMD} ps -a|grep ${CONTAINER_NAME} |grep -v grep|awk '{print $1}'|xargs -i -t ${DOCKER_CMD} rm -f {}
     echo "STARTING ${data}"
-    ${DOCKER_CMD} run --env SERVER_PORT=2234 \
+    ${DOCKER_CMD} run \
            --env SERVER_IP=${data} \
            --volume /opt/docker/${CONTAINER_NAME}/tomcat/logs:/usr/local/tomcat/logs \
            --name ${CONTAINER_NAME} \
-           --publish 8371:2234/tcp \
+           --publish 8371:8080/tcp \
            --expose 8080/tcp \
            --restart always \
            --detach \
@@ -21,3 +21,7 @@ do
     echo "COPYING ${data}"
     ${DOCKER_CMD} cp ${WAR_SOURCE} ${CONTAINER_NAME}:/usr/local/tomcat/webapps/ROOT.war
 done
+
+
+
+
