@@ -173,7 +173,7 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
     }
 
     public SendResult send(String topic, String key, byte[] messageObject, String tag) throws MQClientException, RemotingException, MQBrokerException, InterruptedException {
-        Message msg = buildMsg(topic, key, messageObject, tag);
+        Message msg = buildBytesMsg(topic, key, messageObject, tag);
         SendResult sendResult = send(msg);
         if (log.isInfoEnabled()) {
             log.info("\n\nMSG={}\nSEND RESULT{}", JsonUtils.obj2String(messageObject), sendResult);
