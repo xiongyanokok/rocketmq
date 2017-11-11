@@ -28,35 +28,19 @@ public final class WwwAuthFilter implements Filter {
 
     private Logger logger = LoggerFactory.getLogger(WwwAuthFilter.class);
 
-    private static final String FILE_SEPARATOR = System.getProperty("file.separator");
-
     private static final String AUTH_PREFIX = "Basic ";
 
     private static final String ROOT_IDENTIFY = "root";
 
-    private static final String ROOT_DEFAULT_USERNAME = "root";
-
-    private static final String ROOT_DEFAULT_PASSWORD = "root";
-
-    private String rootUsername;
+    private String rootUsername = "root";
 
     private String rootPassword;
 
 
     @Override
     public void init(final FilterConfig filterConfig) throws ServletException {
-        Properties props = new Properties();
-        URL classLoaderURL = Thread.currentThread().getContextClassLoader().getResource("");
-        if (null != classLoaderURL) {
-            String configFilePath = Joiner.on(FILE_SEPARATOR).join(classLoaderURL.getPath(), "", "application.properties");
-            try {
-                props.load(new FileInputStream(configFilePath));
-            } catch (final IOException ex) {
-                logger.warn("Cannot found auth config file, use default auth config.");
-            }
-        }
-        rootUsername = props.getProperty("root.username", ROOT_DEFAULT_USERNAME);
-        rootPassword = props.getProperty("root.password", ROOT_DEFAULT_PASSWORD);
+        rootPassword = System.getProperty("password");
+        logger.info("root password = {}", rootPassword);
     }
 
     @Override
@@ -82,7 +66,7 @@ public final class WwwAuthFilter implements Filter {
         response.setHeader("Pragma", "No-cache");
         response.setHeader("Cache-Control", "no-store");
         response.setDateHeader("Expires", 0);
-        response.setHeader("identify",  ROOT_IDENTIFY);
+        response.setHeader("identify", ROOT_IDENTIFY);
     }
 
     private void needAuthenticate(final HttpServletResponse response) {
