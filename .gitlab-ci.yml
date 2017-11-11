@@ -10,35 +10,28 @@ clean:
     - rm -rf ../${CI_PROJECT_ID}${CI_BUILD_REF_NAME}/*
   only:
     - master
-    - test
-package-test:
+package:
   stage: package
   script:
-    - echo `pwd`
-    - mvn package -Ptest_with_doc -DskipTests=true
+    - mvn clean package -DskipTests=true -
     - find .|grep war|xargs -i -t mv {} ../${CI_PROJECT_ID}${CI_BUILD_REF_NAME}/
-  only:
-    - test
-package-prd:
-  stage: package
-  script:
-    - mvn package -Pproduct -DskipTests=true
-    - find .|grep war|xargs -i -t mv {} ../${CI_PROJECT_ID}${CI_BUILD_REF_NAME}/
+    - find .|grep jar|xargs -i -t mv {} ../${CI_PROJECT_ID}${CI_BUILD_REF_NAME}/
   only:
     - master
-deploy-test-api:
-  stage: deploy
-  only:
-    - test
-  when: manual
-  script:
-    - echo "deploy api test"
-    - sh ./deploy/api-test.sh
-deploy-prd-api:
+deploy-web-api:
   stage: deploy
   only:
     - master
   when: manual
   script:
-    - echo "deploy api prd"
-    - sh ./deploy/api-prd.sh
+    - echo "deploy webapi"
+    - sh ./deploy/webapi.sh
+
+deploy-console:
+  stage: deploy
+  only:
+    - master
+  when: manual
+  script:
+    - echo "deploy console"
+    - sh ./deploy/console.sh
