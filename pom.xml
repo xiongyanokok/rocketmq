@@ -9,6 +9,7 @@
 		<module>rocketmq-client</module>
 		<module>rocketmq-canal</module>
 		<module>rocketmq-webapi</module>
+		<module>rocketmq-console</module>
 	</modules>
 	<packaging>pom</packaging>
 	<name>rocketmq</name>
