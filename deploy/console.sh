@@ -24,6 +24,6 @@ do
     ${DOCKER_CMD} cp ${JAR_SOURCE} ${CONTAINER_NAME}:/app.jar
 
     echo "run console"
-    ${DOCKER_CMD} exec -i rocketmq-console java $JAVA_OPTS -jar /app.jar
+    ${DOCKER_CMD} exec -i rocketmq-console sh "nohup java $JAVA_OPTS -jar /app.jar &"
 
 done
