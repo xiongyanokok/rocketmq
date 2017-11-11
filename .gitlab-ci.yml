@@ -13,7 +13,7 @@ clean:
 package:
   stage: package
   script:
-    - mvn clean package -DskipTests=true -
+    - mvn clean package -DskipTests=true -U
     - find .|grep war|xargs -i -t mv {} ../${CI_PROJECT_ID}${CI_BUILD_REF_NAME}/
     - find .|grep jar|xargs -i -t mv {} ../${CI_PROJECT_ID}${CI_BUILD_REF_NAME}/
   only:
