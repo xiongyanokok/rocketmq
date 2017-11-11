@@ -11,7 +11,7 @@ do
     echo "REMOVING ${data}"
     ${DOCKER_CMD} ps -a|grep ${CONTAINER_NAME} |grep -v grep|awk '{print $1}'|xargs -i -t ${DOCKER_CMD} rm -f {}
     echo "STARTING ${data}"
-    ${DOCKER_CMD} run -i -d -e JAVA_OPT="-Dpassword=ckevke9234hdy3"\
+    ${DOCKER_CMD} run -i -d -e JAVA_OPTS="-Dpassword=ckevke9234hdy3"\
            --volume /opt/docker/${CONTAINER_NAME}/data:/tmp \
            --name ${CONTAINER_NAME} \
            --publish 8080:8080/tcp \
