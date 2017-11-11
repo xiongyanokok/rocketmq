@@ -11,14 +11,19 @@ do
     echo "REMOVING ${data}"
     ${DOCKER_CMD} ps -a|grep ${CONTAINER_NAME} |grep -v grep|awk '{print $1}'|xargs -i -t ${DOCKER_CMD} rm -f {}
     echo "STARTING ${data}"
-    ${DOCKER_CMD} run \
+    ${DOCKER_CMD} run -i -d \
            --volume /opt/docker/${CONTAINER_NAME}/tomcat/logs:/tmp \
            --name ${CONTAINER_NAME} \
            --publish 8080:8080/tcp \
-           --expose 2234/tcp \
+           --expose 8080/tcp \
            --restart always \
-           --detach \
-           java:8
+           java:8 \
+           tail -f -n20 /etc/hosts
+
     echo "COPYING ${data}"
-    ${DOCKER_CMD} cp ${WAR_SOURCE} ${CONTAINER_NAME}:/usr/local/tomcat/webapps/ROOT.war
+    ${DOCKER_CMD} cp ${JAR_SOURCE} ${CONTAINER_NAME}:/app.jar
+
+    echo "run console"
+    ${DOCKER_CMD} exec -i rocketmq-console java $JAVA_OPTS -jar /app.jar
+
 done
