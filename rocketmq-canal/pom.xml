@@ -26,6 +26,11 @@
             <groupId>com.hexun</groupId>
             <version>1.1.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.hexun</groupId>
+            <artifactId>hwcommon</artifactId>
+            <classifier>jdk8</classifier>
+        </dependency>
     </dependencies>
 
 </project>
