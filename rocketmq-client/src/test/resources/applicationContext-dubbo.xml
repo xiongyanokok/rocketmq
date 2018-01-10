@@ -13,13 +13,19 @@
         <property name="namesrvAddr" value="10.4.63.105:9876;10.4.63.104:9876"/>
     </bean>
 
-    <!--<bean class="com.hexun.rocketmq.client.MessageConsumer" init-method="init">-->
-        <!--<property name="namesrvAddr" value="10.4.63.103:9876;10.4.63.104:9876"/>-->
-        <!--<property name="topic"  value="yuanyue"/>-->
-        <!--<property name="subExpression" value="*"/>-->
+    <bean class="com.hexun.rocketmq.client.MessageConsumer" init-method="init">
+        <property name="namesrvAddr" value="10.4.63.103:9876;10.4.63.104:9876"/>
+        <property name="topic"  value="yuanyue"/>
+        <property name="subExpression" value="*"/>
         <!--<property name="messageListener" ref="listener"/>-->
-        <!--<property name="vipChannelEnabled" value="false"/>-->
-    <!--</bean>-->
+        <property name="vipChannelEnabled" value="false"/>
+    </bean>
+
+    <bean class="com.hexun.rocketmq.client.test.MsgLogConsumer">
+        <property name="topic" value="yuanyue"/>
+        <property name="tag" value="*" />
+    </bean>
+
     <!--<bean id="listener" class="com.hexun.rocketmq.client.test.TestListener"/>-->
     <!--&lt;!&ndash;<bean class="com.hexun.rocketmq.MessageConcurrentlyConsumer">&ndash;&gt;-->
         <!--&lt;!&ndash;<property name="topic" value="yuanyuetest"/>&ndash;&gt;-->

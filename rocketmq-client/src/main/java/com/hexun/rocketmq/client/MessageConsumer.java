@@ -3,7 +3,7 @@ package com.hexun.rocketmq.client;
 import com.hexun.common.utils.IpUtils;
 import com.hexun.common.utils.StringUtils;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
-import org.apache.rocketmq.client.consumer.listener.MessageListener;
+import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerOrderly;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
@@ -29,10 +29,6 @@ public class MessageConsumer extends DefaultMQPushConsumer implements Disposable
      */
     private String subExpression;
 
-    /**
-     * 消息消费 Listener
-     */
-    private MessageListener messageListener;
 
     /**
      * 设置 topic
@@ -46,20 +42,12 @@ public class MessageConsumer extends DefaultMQPushConsumer implements Disposable
     /**
      * 设置setSubExpression
      *
-     * @param subExpression
+     * @param subExpression String
      */
     public void setSubExpression(String subExpression) {
         this.subExpression = subExpression;
     }
 
-    /**
-     * 设置 listener
-     *
-     * @param messageListener
-     */
-    public void setMessageListener(MessageListenerOrderly messageListener) {
-        this.messageListener = messageListener;
-    }
 
     /**
      * 初始化
@@ -73,7 +61,14 @@ public class MessageConsumer extends DefaultMQPushConsumer implements Disposable
         }
         subscribe(topic, subExpression);
         setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
-        registerMessageListener(messageListener);
+        if (getMessageListener() == null) {
+            //注册默认listener
+            registerMessageListener(new DefaultMessageListener());
+        } else if (getMessageListener() instanceof MessageListenerOrderly) {
+            registerMessageListener((MessageListenerOrderly) getMessageListener());
+        } else if (getMessageListener() instanceof MessageListenerConcurrently) {
+            registerMessageListener((MessageListenerConcurrently) getMessageListener());
+        }
         setMessageModel(MessageModel.CLUSTERING);
         setClientIP(IpUtils.getHostIP());
         setVipChannelEnabled(false);

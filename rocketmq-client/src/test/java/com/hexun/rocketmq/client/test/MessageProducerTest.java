@@ -38,4 +38,16 @@ public class MessageProducerTest {
         }
         Thread.sleep(2000000);
     }
+
+
+    @Test
+    public void testConsume() throws Exception {
+        Logger logger = LoggerFactory.getLogger(MessageProducerTest.class);
+        for (int i = 0; i < 1000; i++) {
+            System.out.println(i);
+            String now = DateUtils.now();
+            logger.error(i + "---i={}" + now, i);
+        }
+        Thread.sleep(2000000);
+    }
 }

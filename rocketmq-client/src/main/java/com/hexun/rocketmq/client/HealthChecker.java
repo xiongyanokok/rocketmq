@@ -58,5 +58,13 @@ class HealthChecker {
                                                      }
 
                 , 1 * 60 * 1000, 30 * 1000, TimeUnit.MILLISECONDS);
+        //关闭的时候,关掉 scheduledExecutorService
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                scheduledExecutorService.shutdown();
+            }
+        }));
+
     }
 }
