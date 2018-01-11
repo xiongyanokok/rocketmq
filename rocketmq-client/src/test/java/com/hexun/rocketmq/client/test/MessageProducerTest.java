@@ -22,7 +22,7 @@ public class MessageProducerTest {
         for (int i = 0; i < 1000; i++) {
             System.out.println(i);
             String now = DateUtils.now();
-            producer.sendAsync(i + now, i + now, now);
+            producer.sendAsync(i + now, i + now, "");
         }
         Thread.sleep(2000000);
     }

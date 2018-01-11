@@ -12,7 +12,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.hexun.rocketmq.client.BaseMessageConsumer.TAG_ALL;
 
-public class DefaultMessageListener implements MessageListenerConcurrently {
+/**
+ * 默认的message listener
+ *
+ * @author 87439247@qq.com
+ */
+public class DefaultMessageListener implements MessageListenerOrderly {
 
     /**
      * logger
@@ -23,14 +28,14 @@ public class DefaultMessageListener implements MessageListenerConcurrently {
      * 消费数据
      *
      * @param msgs    List<MessageExt>
-     * @param context ConsumeConcurrentlyContext
-     * @return ConsumeConcurrentlyStatus
+     * @param context ConsumeOrderlyContext
+     * @return ConsumeOrderlyStatus
      */
     @Override
-    public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> msgs, ConsumeConcurrentlyContext context) {
+    public ConsumeOrderlyStatus consumeMessage(List<MessageExt> msgs, ConsumeOrderlyContext context) {
         if (msgs != null && !msgs.isEmpty()) {
             for (MessageExt msgExt : msgs) {
-                logger.info("consuming msg id={} key={}", msgExt.getMsgId(), msgExt.getKeys());
+                logger.info("consuming msg id={} key={} queue id = {}", msgExt.getMsgId(), msgExt.getKeys(), context.getMessageQueue().getQueueId());
                 //根据topic 获取tag消费者
                 ConcurrentHashMap<String, BaseMessageConsumer> listenerByTopic = MessageConsumerMap.getListenerByTopic(msgExt.getTopic());
                 if (listenerByTopic != null) {
@@ -44,14 +49,14 @@ public class DefaultMessageListener implements MessageListenerConcurrently {
                     if (messageConsumer == null) {
                         continue;
                     }
-                    ConsumeOrderlyStatus consumeOrderlyStatus = messageConsumer.consume(msgExt);
-                    if (consumeOrderlyStatus != null && consumeOrderlyStatus == ConsumeOrderlyStatus.SUSPEND_CURRENT_QUEUE_A_MOMENT) {
+                    boolean consumeStatus = messageConsumer.consume(msgExt);
+                    if (!consumeStatus) {
                         logger.info("consuming msg id={} key={} consume failed", msgExt.getMsgId(), msgExt.getKeys());
-                        return ConsumeConcurrentlyStatus.RECONSUME_LATER;
+                        return ConsumeOrderlyStatus.SUSPEND_CURRENT_QUEUE_A_MOMENT;
                     }
                 }
             }
         }
-        return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+        return ConsumeOrderlyStatus.SUCCESS;
     }
 }

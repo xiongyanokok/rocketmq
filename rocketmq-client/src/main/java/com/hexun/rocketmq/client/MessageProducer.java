@@ -16,6 +16,7 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
+
 import java.util.List;
 
 /**
@@ -87,7 +88,8 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
 
     /**
      * build msg
-     * @param key key
+     *
+     * @param key           key
      * @param messageObject 对象
      * @return Message
      */
@@ -97,7 +99,8 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
 
     /**
      * build msg
-     * @param key key
+     *
+     * @param key           key
      * @param messageObject 对象
      * @return Message
      */
@@ -107,21 +110,23 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
 
     /**
      * build msg
-     * @param key key
+     *
+     * @param key           key
      * @param messageObject byte[] 数组
      * @return Message
      */
     public Message buildBytesMsg(String topic, String key, byte[] messageObject, String tag) {
-        return new Message(topic,// topic
-                tag,// tag
-                key,// keys
+        return new Message(topic,
+                tag,
+                key,
                 messageObject
         );
     }
 
     /**
      * build msg
-     * @param key key
+     *
+     * @param key           key
      * @param messageObject 对象
      * @return Message
      */
@@ -197,9 +202,9 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
      * @throws InterruptedException InterruptedException
      */
     public void send(String key, Object messageObject, String tag, SendCallback sendCallback) throws MQClientException, RemotingException, InterruptedException {
-        Message msg = new Message(getTopic(),// topic
-                tag,// tag
-                key,// keys
+        Message msg = new Message(getTopic(),
+                tag,
+                key,
                 JsonUtils.obj2Bytes(messageObject)
         );
 
@@ -233,9 +238,9 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
      * @throws InterruptedException InterruptedException
      */
     public <T> void sendOneway(String key, T messageObject, String tag) throws MQClientException, RemotingException, InterruptedException {
-        Message msg = new Message(getTopic(),// topic
-                tag,// tag
-                key,// keys
+        Message msg = new Message(getTopic(),
+                tag,
+                key,
                 JsonUtils.obj2Bytes(messageObject)
         );
 
@@ -305,9 +310,9 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
     public SendResult sendOrderly(String topic, String key, Object messageObject, String tag) {
         byte[] msgBytes = JsonUtils.obj2Bytes(messageObject);
 
-        Message msg = new Message(topic,// topic
-                tag,// tag
-                key,// keys
+        Message msg = new Message(topic,
+                tag,
+                key,
                 msgBytes
         );
         SendResult sendResult = null;
@@ -323,6 +328,47 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
         }
         return sendResult;
     }
+
+
+    /**
+     * 顺序发消息,默认发送到第一个queue
+     *
+     * @param key           key
+     * @param messageObject 消息对象
+     * @param tag           标签
+     */
+    public void sendAsyncOrderly(String key, Object messageObject, String tag) {
+        sendAsyncOrderly(topic, key, messageObject, tag);
+    }
+
+    /**
+     * 顺序发消息,默认发送到第一个queue
+     *
+     * @param topic         topic
+     * @param key           key
+     * @param messageObject 消息对象
+     * @param tag           标签
+     */
+    public void sendAsyncOrderly(String topic, String key, Object messageObject, String tag) {
+        byte[] msgBytes = JsonUtils.obj2Bytes(messageObject);
+
+        Message msg = new Message(topic,
+                tag,
+                key,
+                msgBytes
+        );
+        try {
+            send(msg, new MessageQueueSelector() {
+                @Override
+                public MessageQueue select(List<MessageQueue> mqs, Message msg, Object arg) {
+                    return mqs.get(0);
+                }
+            }, topic, createCallback(messageObject));
+        } catch (Exception e) {
+            log.error("TOPIC={},KEY={},TAG={}", topic, key, tag, e);
+        }
+    }
+
 
     /**
      * 批量发送消息,允许有丢失
