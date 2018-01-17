@@ -20,7 +20,7 @@
     <bean id="tags" class="com.hexun.rocketmq.client.TagsConfig" parent="appMqConf">
         <property name="tagListenerMap">
             <map>
-                <entry key="taga" value="com.hexun.rocketmq.client.test.TestListener"/>
+                <entry key="*" value="com.hexun.rocketmq.client.test.TestListener"/>
                 <entry key="tagb" value="com.hexun.rocketmq.client.test.TestListener"/>
             </map>
         </property>
