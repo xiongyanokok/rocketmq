@@ -20,11 +20,12 @@ public class MsgLogConsumer extends BaseMessageConsumer {
             e.printStackTrace();
         }
         System.out.println("MsgLogConsumer**********" + DateUtils.now());
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return true;
+//        try {
+//            Thread.sleep(3000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+        return true
+                ;
     }
 }

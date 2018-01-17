@@ -11,7 +11,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration({"/application*.xml"})
+@ContextConfiguration({"/applicationContext-producer.xml"})
 public class MessageProducerTest {
 
     @Autowired
@@ -19,34 +19,15 @@ public class MessageProducerTest {
 
     @Test
     public void testAddAppointment() throws Exception {
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 100; i++) {
             System.out.println(i);
             String now = DateUtils.now();
-            producer.sendAsync(i + now, i + now, "");
+            producer.sendAsync(i + "************" + now, "AAAAAAAAAAAA", "taga");
         }
-        Thread.sleep(2000000);
-    }
-
-
-    @Test
-    public void testlog() throws Exception {
-        Logger logger = LoggerFactory.getLogger(MessageProducerTest.class);
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 100; i++) {
             System.out.println(i);
             String now = DateUtils.now();
-            logger.error(i + "---i={}" + now, i);
-        }
-        Thread.sleep(2000000);
-    }
-
-
-    @Test
-    public void testConsume() throws Exception {
-        Logger logger = LoggerFactory.getLogger(MessageProducerTest.class);
-        for (int i = 0; i < 1000; i++) {
-            System.out.println(i);
-            String now = DateUtils.now();
-            logger.error(i + "---i={}" + now, i);
+            producer.sendAsync(i + "************" + now, "BBBBBBBBBBBB", "tagb");
         }
         Thread.sleep(2000000);
     }
