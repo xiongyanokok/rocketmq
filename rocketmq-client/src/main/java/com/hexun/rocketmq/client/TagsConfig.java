@@ -10,6 +10,7 @@ import java.util.Map;
 
 /**
  * tag 配置
+ * 默认的group 是 CG-{TOPIC}-{TAG}
  *
  * @author yuanyue 87439247@qq.com
  */
@@ -53,11 +54,16 @@ public class TagsConfig extends TopicConfig {
             try {
                 MessageConsumer consumer = new MessageConsumer();
                 consumers.add(consumer);
+                consumer.setNamesrvAddr(getNamesrvAddr());
                 consumer.setTopic(getTopic());
                 consumer.setSubExpression(tag.getTag());
                 consumer.setListenerClass(tag.listenerClass);
                 consumer.setVipChannelEnabled(isVipChannelEnabled());
-                consumer.setConsumerGroup("CG-" + getTopic() + "-" + tag.getTag());
+                String consumeGroup = "CG-" + getTopic();
+                if (!BaseMessageConsumer.TAG_ALL.equals(tag.getTag())) {
+                    consumeGroup = consumeGroup + "-" + tag.getTag();
+                }
+                consumer.setConsumerGroup(consumeGroup);
                 consumer.init();
             } catch (MQClientException e) {
                 logger.error("初始化失败topic={},tag={},listener={}", getTopic(), tag.getTag(), tag.getListenerClass(), e);
