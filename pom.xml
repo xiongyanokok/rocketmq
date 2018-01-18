@@ -4,7 +4,7 @@
 
 	<groupId>com.hexun</groupId>
 	<artifactId>rocketmq</artifactId>
-	<version>1.1.4</version>
+	<version>1.1.5</version>
 	<modules>
 		<module>rocketmq-client</module>
 		<module>rocketmq-canal</module>
