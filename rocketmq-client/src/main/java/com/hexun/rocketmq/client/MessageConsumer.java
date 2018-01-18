@@ -90,9 +90,10 @@ public class MessageConsumer extends DefaultMQPushConsumer implements Disposable
         subscribe(topic, subExpression);
         setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
         if (getMessageListener() == null) {
-            //注册默认listener
-            registerMessageListener(new DefaultMessageListener());
-        } else if (getMessageListener() instanceof MessageListenerOrderly) {
+            log.error("no message listener found here");
+            return;
+        }
+        if (getMessageListener() instanceof MessageListenerOrderly) {
             registerMessageListener((MessageListenerOrderly) getMessageListener());
         } else if (getMessageListener() instanceof MessageListenerConcurrently) {
             registerMessageListener((MessageListenerConcurrently) getMessageListener());
