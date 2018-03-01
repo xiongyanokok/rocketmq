@@ -1,6 +1,7 @@
 package com.hexun.rocketmq.client;
 
 import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ public class TagsConfig extends TopicConfig {
 
     /**
      * 是否是集群消费
+     *
      * @param consumeCluster
      */
     public void setConsumeCluster(boolean consumeCluster) {
@@ -70,11 +72,7 @@ public class TagsConfig extends TopicConfig {
                 consumers.add(consumer);
                 consumer.setNamesrvAddr(getNamesrvAddr());
                 consumer.setTopic(getTopic());
-                if (consumeCluster) {
-                    consumer.setMessageModel(MessageModel.CLUSTERING);
-                } else {
-                    consumer.setMessageModel(MessageModel.BROADCASTING);
-                }
+                consumer.setConsumeCluster(consumeCluster);
                 consumer.setSubExpression(tag.getTag());
                 consumer.setListenerClass(tag.listenerClass);
                 consumer.setVipChannelEnabled(isVipChannelEnabled());

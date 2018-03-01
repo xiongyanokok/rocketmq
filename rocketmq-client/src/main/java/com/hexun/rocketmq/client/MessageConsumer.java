@@ -36,6 +36,20 @@ public class MessageConsumer extends DefaultMQPushConsumer implements Disposable
     private String listenerClass;
 
     /**
+     * 是否是集群消费
+     */
+    private boolean consumeCluster = true;
+
+    /**
+     * 设置是否集群消费
+     *
+     * @param consumeCluster
+     */
+    public void setConsumeCluster(boolean consumeCluster) {
+        this.consumeCluster = consumeCluster;
+    }
+
+    /**
      * 设置 topic
      *
      * @param topic topic
@@ -98,11 +112,16 @@ public class MessageConsumer extends DefaultMQPushConsumer implements Disposable
         } else if (getMessageListener() instanceof MessageListenerConcurrently) {
             registerMessageListener((MessageListenerConcurrently) getMessageListener());
         }
-        setMessageModel(MessageModel.CLUSTERING);
+        if (consumeCluster) {
+            setMessageModel(MessageModel.CLUSTERING);
+        } else {
+            setMessageModel(MessageModel.BROADCASTING);
+        }
         setClientIP(IpUtils.getHostIP());
         setVipChannelEnabled(false);
         start();
-        log.info("服务器={}\n" +
+        log.info("\n" +
+                "服务器={}\n" +
                 "TOPIC={}\n" +
                 "subExpression={}\n" +
                 "消费者ConsumerGroup={}\n" +

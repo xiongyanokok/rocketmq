@@ -10,21 +10,23 @@
 
     <bean id="appMqConf" class="com.hexun.rocketmq.client.TopicConfig" abstract="true" init-method="init"
           lazy-init="true">
-        <property name="namesrvAddr" value="10.4.63.105:9876;10.4.63.104:9876"/>
+        <property name="namesrvAddr" value="10.4.63.103:9876;10.4.63.104:9876"/>
         <property name="vipChannelEnabled" value="false"/>
         <property name="topic" value="yuanyue"/>
-        <property name="instanceName" value="test11"/>
+        <property name="instanceName" value="dd123123"/>
     </bean>
 
 
     <bean id="tags" class="com.hexun.rocketmq.client.TagsConfig" parent="appMqConf">
+        <property name="consumeCluster" value="false"/>
         <property name="tagListenerMap">
             <map>
-                <entry key="*" value="com.hexun.rocketmq.client.test.TestListener"/>
-                <entry key="tagb" value="com.hexun.rocketmq.client.test.TestListener"/>
+                <entry key="aaa" value="com.hexun.rocketmq.client.test.TestListener"/>
             </map>
         </property>
     </bean>
+
+    <bean class="com.hexun.rocketmq.client.MessageProducer" parent="appMqConf"/>
 
     <!--<bean class="com.hexun.rocketmq.client.MessageConsumer" init-method="init" parent="appMqConf">-->
         <!--<property name="subExpression" value="taga"/>-->
