@@ -22,35 +22,35 @@ import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.mysql.Config;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class RocketMQProducer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RocketMQProducer.class);
 
-    private DefaultMQProducer producer;
-    private Config config;
+	private DefaultMQProducer producer;
+	private Config config;
 
-    public RocketMQProducer(Config config) {
-        this.config = config;
-    }
+	public RocketMQProducer(Config config) {
+		this.config = config;
+	}
 
-    public void start() throws MQClientException {
-        producer = new DefaultMQProducer("BINLOG_PRODUCER_GROUP");
-        producer.setNamesrvAddr(config.mqNamesrvAddr);
-        producer.start();
-    }
+	public void start() throws MQClientException {
+		producer = new DefaultMQProducer("BINLOG_PRODUCER_GROUP");
+		producer.setNamesrvAddr(config.getMqNamesrvAddr());
+		producer.start();
+	}
 
-    public long push(String json) throws Exception {
-        LOGGER.debug(json);
+	public long push(String json) throws Exception {
+		log.info("--------------->{}", json);
 
-        Message message = new Message(config.mqTopic, json.getBytes("UTF-8"));
-        // 设置tag
-        message.setTags("表名");
-        // 设置key
-        message.setKeys("nextPosition");
-        SendResult sendResult = producer.send(message);
+		Message message = new Message(config.getMqTopic(), json.getBytes("UTF-8"));
+		// 设置tag
+		// message.setTags("表名");
+		// 设置key
+		// message.setKeys("nextPosition");
+		SendResult sendResult = producer.send(message);
 
-        return sendResult.getQueueOffset();
-    }
+		return sendResult.getQueueOffset();
+	}
 }

@@ -17,72 +17,38 @@
 
 package org.apache.rocketmq.mysql.binlog;
 
-import com.alibaba.fastjson.JSONObject;
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import org.apache.rocketmq.mysql.Config;
+
 import org.apache.rocketmq.mysql.position.BinlogPosition;
 import org.apache.rocketmq.mysql.schema.Table;
 
+import com.alibaba.fastjson.JSONObject;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class Transaction {
-    private BinlogPosition nextBinlogPosition;
-    private Long xid;
 
-    private Config config;
+	private BinlogPosition nextBinlogPosition;
+	private Long xid;
+	private DataRow dataRow;
 
-    private List<DataRow> list = new LinkedList<>();
+	public void addRow(String type, Table table, Serializable[] before, Serializable[] row) {
+		dataRow = new DataRow(type, table, before, row);
+	}
 
-    public Transaction(Config config) {
-        this.config = config;
-    }
+	public String toJson() {
+		Map<String, Object> map = new HashMap<>();
+		map.put("xid", xid);
+		map.put("binlogFilename", nextBinlogPosition.getBinlogFilename());
+		map.put("nextPosition", nextBinlogPosition.getPosition());
+		map.put("rows", dataRow.toMap());
 
-    public boolean addRow(String type, Table table, Serializable[] row) {
+		return JSONObject.toJSONString(map);
+	}
 
-        if (list.size() == config.maxTransactionRows) {
-            return false;
-        } else {
-            DataRow dataRow = new DataRow(type, table, row);
-            list.add(dataRow);
-            return true;
-        }
-
-    }
-
-    public String toJson() {
-
-        List<Map> rows = new LinkedList<>();
-        for (DataRow dataRow : list) {
-            Map rowMap = dataRow.toMap();
-            if (rowMap != null) {
-                rows.add(rowMap);
-            }
-        }
-
-        Map<String, Object> map = new HashMap<>();
-        map.put("xid", xid);
-        map.put("binlogFilename", nextBinlogPosition.getBinlogFilename());
-        map.put("nextPosition", nextBinlogPosition.getPosition());
-        map.put("rows", rows);
-
-        return JSONObject.toJSONString(map);
-    }
-
-    public BinlogPosition getNextBinlogPosition() {
-        return nextBinlogPosition;
-    }
-
-    public void setNextBinlogPosition(BinlogPosition nextBinlogPosition) {
-        this.nextBinlogPosition = nextBinlogPosition;
-    }
-
-    public void setXid(Long xid) {
-        this.xid = xid;
-    }
-
-    public Long getXid() {
-        return xid;
-    }
 }

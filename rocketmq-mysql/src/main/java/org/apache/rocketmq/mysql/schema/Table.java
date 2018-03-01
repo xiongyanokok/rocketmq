@@ -19,40 +19,30 @@ package org.apache.rocketmq.mysql.schema;
 
 import java.util.LinkedList;
 import java.util.List;
+
 import org.apache.rocketmq.mysql.schema.column.ColumnParser;
 
+import lombok.Getter;
+
+@Getter
 public class Table {
-    private String database;
-    private String name;
-    private List<String> colList = new LinkedList<String>();
-    private List<ColumnParser> parserList = new LinkedList<ColumnParser>();
+	
+	private String database;
+	private String name;
+	private List<String> colList = new LinkedList<>();
+	private List<ColumnParser> parserList = new LinkedList<>();
 
-    public Table(String database, String table) {
-        this.database = database;
-        this.name = table;
-    }
+	public Table(String database, String table) {
+		this.database = database;
+		this.name = table;
+	}
 
-    public void addCol(String column) {
-        colList.add(column);
-    }
+	public void addCol(String column) {
+		colList.add(column);
+	}
 
-    public void addParser(ColumnParser columnParser) {
-        parserList.add(columnParser);
-    }
+	public void addParser(ColumnParser columnParser) {
+		parserList.add(columnParser);
+	}
 
-    public List<String> getColList() {
-        return colList;
-    }
-
-    public String getDatabase() {
-        return database;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public List<ColumnParser> getParserList() {
-        return parserList;
-    }
 }

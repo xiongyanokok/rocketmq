@@ -14,117 +14,128 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.rocketmq.mysql;
 
 import org.apache.rocketmq.mysql.binlog.EventProcessor;
 import org.apache.rocketmq.mysql.binlog.Transaction;
+import org.apache.rocketmq.mysql.position.BinlogPosition;
 import org.apache.rocketmq.mysql.position.BinlogPositionLogThread;
 import org.apache.rocketmq.mysql.productor.RocketMQProducer;
-import org.apache.rocketmq.mysql.position.BinlogPosition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import com.hexun.zookeeper.RegistryCenter;
+import com.hexun.zookeeper.ZookeeperRegistryCenter;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Replicator {
+	
+	private RegistryCenter registryCenter;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Replicator.class);
+	private Config config;
 
-    private static final Logger POSITION_LOGGER = LoggerFactory.getLogger("PositionLogger");
+	private RocketMQProducer rocketMQProducer;
 
-    private Config config;
+	private Object lock = new Object();
 
-    private EventProcessor eventProcessor;
+	private BinlogPosition nextBinlogPosition;
+	private long xid;
 
-    private RocketMQProducer rocketMQProducer;
+	public static void main(String[] args) {
+		Replicator replicator = new Replicator();
+		replicator.start();
+	}
+	
+	public void start() {
+		try {
+			// 加载配置文件
+			config = new Config();
+			config.load();
+			
+			// 加载zookeeper
+			ZookeeperRegistryCenter zookeeperRegistryCenter = new ZookeeperRegistryCenter();
+			zookeeperRegistryCenter.setServers(config.getZkAddr());
+			zookeeperRegistryCenter.setNamespace(config.getZkNamespace());
+			zookeeperRegistryCenter.init();
+			registryCenter = zookeeperRegistryCenter;
+			
+			// 加锁（分布式环境防止重复消费binlog日志）
+			lock();
 
-    private Object lock = new Object();
-    private BinlogPosition nextBinlogPosition;
-    private long nextQueueOffset;
-    private long xid;
+			// 连接RocketMQ
+			rocketMQProducer = new RocketMQProducer(config);
+			rocketMQProducer.start();
 
-    public static void main(String[] args) {
+			// 每秒钟记录最近一次二进制日志位置和偏移量
+			BinlogPositionLogThread binlogPositionLogThread = new BinlogPositionLogThread(this);
+			binlogPositionLogThread.start();
 
-        Replicator replicator = new Replicator();
-        // 加锁（分布式环境防止重复消费binlog日志）
-        replicator.start();
-    }
+			// 事件处理
+			EventProcessor eventProcessor = new EventProcessor(this);
+			eventProcessor.start();
+			
+		} catch (Exception e) {
+			log.error("Start error.", e);
+			System.exit(1);
+		}
+	}
+	
+	private void lock() {
+		if (registryCenter.isExisted("/lock")) {
+			try {
+				Thread.sleep(10000);
+			} catch (Exception e) {
+				// 
+			}
+			lock();
+		} else {
+			registryCenter.ephemeral("/lock", "lock");
+		}
+	}
 
-    public void start() {
+	public void commit(Transaction transaction) {
+		for (int i = 0; i < 3; i++) {
+			try {
+				if (null != transaction.getDataRow()) {
+					rocketMQProducer.push(transaction.toJson());
+				}
+				break;
+			} catch (Exception e) {
+				log.error("Push error， retry:{} times", (i + 1), e);
+			} finally {
+				synchronized (lock) {
+					xid = transaction.getXid();
+					nextBinlogPosition = transaction.getNextBinlogPosition();
+				}
+			}
+		}
+	}
 
-        try {
-            config = new Config();
-            config.load();
+	public void logPosition() {
+		if (nextBinlogPosition != null) {
+			synchronized (lock) {
+				// 二进制日志文件
+				String binlogFilename = nextBinlogPosition.getBinlogFilename();
+				// 偏移量
+				long nextPosition = nextBinlogPosition.getPosition();
+				log.info("XID: {}，BINLOG_FILE: {}，NEXT_POSITION: {}", xid, binlogFilename, nextPosition);
 
-            rocketMQProducer = new RocketMQProducer(config);
-            rocketMQProducer.start();
+				// 持久化数据到zk中
+				registryCenter.persist("/binlogPosition", "{\"binlogFilename\":\"" + binlogFilename + "\", \"nextPosition\":" + nextPosition + "}");
+			}
+		}
+	}
 
-            BinlogPositionLogThread binlogPositionLogThread = new BinlogPositionLogThread(this);
-            binlogPositionLogThread.start();
+	public Config getConfig() {
+		return config;
+	}
 
-            eventProcessor = new EventProcessor(this);
-            eventProcessor.start();
-
-        } catch (Exception e) {
-            LOGGER.error("Start error.", e);
-            System.exit(1);
-        }
-    }
-
-    public void commit(Transaction transaction, boolean isComplete) {
-
-        String json = transaction.toJson();
-        LOGGER.info("-------------------->{}", json);
-        for (int i = 0; i < 3; i++) {
-            try {
-                if (isComplete) {
-                    long offset = rocketMQProducer.push(json);
-
-                    synchronized (lock) {
-                        xid = transaction.getXid();
-                        nextBinlogPosition = transaction.getNextBinlogPosition();
-                        nextQueueOffset = offset;
-                    }
-
-                } else {
-                    rocketMQProducer.push(json);
-                }
-                break;
-
-            } catch (Exception e) {
-                LOGGER.error("Push error,retry:" + (i + 1) + ",", e);
-            }
-        }
-    }
-
-    public void logPosition() {
-
-        String binlogFilename = null;
-        long xid = 0L;
-        long nextPosition = 0L;
-        long nextOffset = 0L;
-
-        synchronized (lock) {
-            if (nextBinlogPosition != null) {
-                xid = this.xid;
-                binlogFilename = nextBinlogPosition.getBinlogFilename();
-                nextPosition = nextBinlogPosition.getPosition();
-                nextOffset = nextQueueOffset;
-            }
-        }
-
-        if (binlogFilename != null) {
-            POSITION_LOGGER.info("XID: {},   BINLOG_FILE: {},   NEXT_POSITION: {},   NEXT_OFFSET: {}",
-                xid, binlogFilename, nextPosition, nextOffset);
-        }
-
-    }
-
-    public Config getConfig() {
-        return config;
-    }
-
-    public BinlogPosition getNextBinlogPosition() {
-        return nextBinlogPosition;
-    }
+	public BinlogPosition getNextBinlogPosition() {
+		return nextBinlogPosition;
+	}
+	
+	public RegistryCenter getRegistryCenter() {
+		return registryCenter;
+	}
 
 }

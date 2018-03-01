@@ -23,82 +23,68 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.sql.DataSource;
-import org.apache.rocketmq.mysql.binlog.EventProcessor;
+
 import org.apache.rocketmq.mysql.schema.column.ColumnParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Database {
-    private static final Logger LOGGER = LoggerFactory.getLogger(EventProcessor.class);
 
-    private static final String SQL = "select table_name,column_name,data_type,column_type,character_set_name " +
-        "from information_schema.columns " +
-        "where table_schema = ?";
-    private String name;
+	private static final String SQL = "select table_name,column_name,data_type,column_type,character_set_name from information_schema.columns where table_schema = ?";
 
-    private DataSource dataSource;
+	private String dbName;
 
-    private Map<String, Table> tableMap = new HashMap<String, Table>();
+	private DataSource dataSource;
 
-    public Database(String name, DataSource dataSource) {
-        this.name = name;
-        this.dataSource = dataSource;
-    }
+	private Map<String, Table> tableMap = new HashMap<>();
 
-    public void init() throws SQLException {
-        Connection conn = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
+	public Database(String dbName, DataSource dataSource) {
+		this.dbName = dbName;
+		this.dataSource = dataSource;
+	}
 
-        try {
-            conn = dataSource.getConnection();
+	public void init() throws SQLException {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
 
-            ps = conn.prepareStatement(SQL);
-            ps.setString(1, name);
-            rs = ps.executeQuery();
+		try {
+			conn = dataSource.getConnection();
+			ps = conn.prepareStatement(SQL);
+			ps.setString(1, dbName);
+			rs = ps.executeQuery();
 
-            while (rs.next()) {
-                String tableName = rs.getString(1);
-                String colName = rs.getString(2);
-                String dataType = rs.getString(3);
-                String colType = rs.getString(4);
-                String charset = rs.getString(5);
+			while (rs.next()) {
+				String tableName = rs.getString(1);
+				String colName = rs.getString(2);
+				String dataType = rs.getString(3);
+				String colType = rs.getString(4);
+				String charset = rs.getString(5);
 
-                ColumnParser columnParser = ColumnParser.getColumnParser(dataType, colType, charset);
+				ColumnParser columnParser = ColumnParser.getColumnParser(dataType, colType, charset);
 
-                if (!tableMap.containsKey(tableName)) {
-                    addTable(tableName);
-                }
-                Table table = tableMap.get(tableName);
-                table.addCol(colName);
-                table.addParser(columnParser);
-            }
+				Table table = tableMap.get(tableName);
+				if (null == table) {
+					table = new Table(dbName, tableName);
+					tableMap.put(tableName, table);
+				}
+				table.addCol(colName);
+				table.addParser(columnParser);
+			}
+		} finally {
+			if (rs != null) {
+				rs.close();
+			}
+			if (ps != null) {
+				ps.close();
+			}
+			if (conn != null) {
+				conn.close();
+			}
+		}
+	}
 
-        } finally {
-            if (conn != null) {
-                conn.close();
-            }
-            if (ps != null) {
-                ps.close();
-            }
-            if (rs != null) {
-                rs.close();
-            }
-        }
-
-    }
-
-    private void addTable(String tableName) {
-
-        LOGGER.info("Schema load -- DATABASE:{},\tTABLE:{}", name, tableName);
-
-        Table table = new Table(name, tableName);
-        tableMap.put(tableName, table);
-    }
-
-    public Table getTable(String tableName) {
-
-        return tableMap.get(tableName);
-    }
+	public Table getTable(String tableName) {
+		return tableMap.get(tableName);
+	}
 }

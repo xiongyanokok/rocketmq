@@ -21,106 +21,96 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.sql.DataSource;
-import org.apache.rocketmq.mysql.binlog.EventProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Schema {
-    private static final Logger LOGGER = LoggerFactory.getLogger(EventProcessor.class);
 
-    private static final String SQL = "select schema_name from information_schema.schemata";
+	private static final String SQL = "select schema_name from information_schema.schemata";
 
-    private static final List<String> IGNORED_DATABASES = new ArrayList<>(
-        Arrays.asList(new String[] {"information_schema", "mysql", "performance_schema", "sys"})
-    );
+	private static final List<String> IGNORED_DATABASES = Arrays.asList("information_schema", "mysql", "performance_schema", "sys");
 
-    private DataSource dataSource;
+	private DataSource dataSource;
 
-    private Map<String, Database> dbMap;
+	private Map<String, Database> dbMap = new HashMap<>();
 
-    public Schema(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
+	public Schema(DataSource dataSource) {
+		this.dataSource = dataSource;
+	}
 
-    public void load() throws SQLException {
+	public void load() throws SQLException {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
 
-        dbMap = new HashMap<>();
+		try {
+			conn = dataSource.getConnection();
+			ps = conn.prepareStatement(SQL);
+			rs = ps.executeQuery();
 
-        Connection conn = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
+			while (rs.next()) {
+				String dbName = rs.getString(1);
+				if (!IGNORED_DATABASES.contains(dbName)) {
+					Database database = new Database(dbName, dataSource);
+					dbMap.put(dbName, database);
+				}
+			}
+		} finally {
+			if (rs != null) {
+				rs.close();
+			}
+			if (ps != null) {
+				ps.close();
+			}
+			if (conn != null) {
+				conn.close();
+			}
+		}
 
-        try {
-            conn = dataSource.getConnection();
+		for (Database db : dbMap.values()) {
+			db.init();
+		}
+	}
 
-            ps = conn.prepareStatement(SQL);
-            rs = ps.executeQuery();
+	public Table getTable(String dbName, String tableName) {
 
-            while (rs.next()) {
-                String dbName = rs.getString(1);
-                if (!IGNORED_DATABASES.contains(dbName)) {
-                    Database database = new Database(dbName, dataSource);
-                    dbMap.put(dbName, database);
-                }
-            }
+		if (dbMap == null) {
+			reload();
+		}
 
-        } finally {
+		Database database = dbMap.get(dbName);
+		if (database == null) {
+			return null;
+		}
 
-            if (conn != null) {
-                conn.close();
-            }
-            if (ps != null) {
-                ps.close();
-            }
-            if (rs != null) {
-                rs.close();
-            }
-        }
+		Table table = database.getTable(tableName);
+		if (table == null) {
+			return null;
+		}
 
-        for (Database db : dbMap.values()) {
-            db.init();
-        }
+		return table;
+	}
 
-    }
+	private void reload() {
 
-    public Table getTable(String dbName, String tableName) {
+		while (true) {
+			try {
+				load();
+				break;
+			} catch (Exception e) {
+				log.error("Reload schema error.", e);
+			}
+		}
+	}
 
-        if (dbMap == null) {
-            reload();
-        }
-
-        Database database = dbMap.get(dbName);
-        if (database == null) {
-            return null;
-        }
-
-        Table table = database.getTable(tableName);
-        if (table == null) {
-            return null;
-        }
-
-        return table;
-    }
-
-    private void reload() {
-
-        while (true) {
-            try {
-                load();
-                break;
-            } catch (Exception e) {
-                LOGGER.error("Reload schema error.", e);
-            }
-        }
-    }
-
-    public void reset() {
-        dbMap = null;
-    }
+	public void reset() {
+		dbMap = null;
+	}
 }

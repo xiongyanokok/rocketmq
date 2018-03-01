@@ -21,56 +21,63 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.rocketmq.mysql.schema.Table;
 import org.apache.rocketmq.mysql.schema.column.ColumnParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class DataRow {
-    private Logger logger = LoggerFactory.getLogger(DataRow.class);
 
-    private String type;
-    private Table table;
-    private Serializable[] row;
+	private String type;
+	private Table table;
+	private Serializable[] before;
+	private Serializable[] row;
 
-    public DataRow(String type, Table table, Serializable[] row) {
-        this.type = type;
-        this.table = table;
-        this.row = row;
-    }
+	public DataRow(String type, Table table, Serializable[] before, Serializable[] row) {
+		this.type = type;
+		this.table = table;
+		this.before = before;
+		this.row = row;
+	}
 
-    public Map toMap() {
+	public Map<String, Object> toMap() {
 
-        try {
-            if (table.getColList().size() == row.length) {
-                Map<String, Object> dataMap = new HashMap<>();
-                List<String> keyList = table.getColList();
-                List<ColumnParser> parserList = table.getParserList();
+		try {
+			if (table.getColList().size() == row.length) {
+				List<String> keyList = table.getColList();
+				List<ColumnParser> parserList = table.getParserList();
 
-                for (int i = 0; i < keyList.size(); i++) {
-                    Object value = row[i];
-                    ColumnParser parser = parserList.get(i);
-                    dataMap.put(keyList.get(i), parser.getValue(value));
-                }
+				Map<String, Object> beforeDataMap = new HashMap<>();
+				if (null != before) {
+					for (int i = 0; i < keyList.size(); i++) {
+						Object value = before[i];
+						ColumnParser parser = parserList.get(i);
+						beforeDataMap.put(keyList.get(i), parser.getValue(value));
+					}
+				}
 
-                Map<String, Object> map = new HashMap<>();
-                map.put("database", table.getDatabase());
-                map.put("table", table.getName());
-                map.put("type", type);
-                map.put("data", dataMap);
+				Map<String, Object> dataMap = new HashMap<>();
+				for (int i = 0; i < keyList.size(); i++) {
+					Object value = row[i];
+					ColumnParser parser = parserList.get(i);
+					dataMap.put(keyList.get(i), parser.getValue(value));
+				}
 
-                return map;
-            } else {
-                logger.error("Table schema changed,discard data: {} - {}, {}  {}",
-                    table.getDatabase().toUpperCase(), table.getName().toUpperCase(), type, row.toString());
-
-                return null;
-            }
-        } catch (Exception e) {
-            logger.error("Row parse error,discard data: {} - {}, {}  {}",
-                table.getDatabase().toUpperCase(), table.getName().toUpperCase(), type, row.toString());
-        }
-
-        return null;
-    }
+				Map<String, Object> map = new HashMap<>();
+				map.put("database", table.getDatabase());
+				map.put("table", table.getName());
+				map.put("type", type);
+				map.put("beforeData", beforeDataMap);
+				map.put("data", dataMap);
+				return map;
+			} else {
+				log.error("Table schema changed，discard data: {} - {}, {}  {}  {}", table.getDatabase(), table.getName(), type, before, row);
+			}
+		} catch (Exception e) {
+			log.error("Row parse error，discard data: {} - {}, {}  {}  {}", table.getDatabase(), table.getName(), type, before, row);
+		}
+		return null;
+	}
 }

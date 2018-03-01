@@ -18,30 +18,29 @@
 package org.apache.rocketmq.mysql.position;
 
 import org.apache.rocketmq.mysql.Replicator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class BinlogPositionLogThread extends Thread {
-    private Logger logger = LoggerFactory.getLogger(BinlogPositionLogThread.class);
 
-    private Replicator replicator;
+	private Replicator replicator;
 
-    public BinlogPositionLogThread(Replicator replicator) {
-        this.replicator = replicator;
-        setDaemon(true);
-    }
+	public BinlogPositionLogThread(Replicator replicator) {
+		this.replicator = replicator;
+		setDaemon(true);
+	}
 
-    @Override
-    public void run() {
-
-        while (true) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                logger.error("Offset thread interrupted.", e);
-            }
-
-            replicator.logPosition();
-        }
-    }
+	@Override
+	public void run() {
+		while (true) {
+			try {
+				Thread.sleep(1000);
+			} catch (Exception e) {
+				log.error("Offset thread interrupted.", e);
+			}
+			
+			replicator.logPosition();
+		}
+	}
 }

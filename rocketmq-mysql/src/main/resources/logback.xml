@@ -1,79 +1,111 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Licensed to the Apache Software Foundation (ASF) under one or more
-  contributor license agreements.  See the NOTICE file distributed with
-  this work for additional information regarding copyright ownership.
-  The ASF licenses this file to You under the Apache License, Version 2.0
-  (the "License"); you may not use this file except in compliance with
-  the License.  You may obtain a copy of the License at
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration scan="true" scanPeriod="1 seconds" debug="false">
 
-      http://www.apache.org/licenses/LICENSE-2.0
+    <!-- set env -->
+    <property name="LOGDROOT" value="."/>
+    <property name="APP_NAME" value="rocketmq-mysql"/>
+    <property name="DEBUG_LOG_PATH" value="${LOGDROOT}/logs/${APP_NAME}_debug"/>
+    <property name="INFO_LOG_PATH" value="${LOGDROOT}/logs/${APP_NAME}_info"/>
+    <property name="WARN_LOG_PATH" value="${LOGDROOT}/logs/${APP_NAME}_warn"/>
+    <property name="ERROR_LOG_PATH" value="${LOGDROOT}/logs/${APP_NAME}_error"/>
+    <!-- %d system date,%p log level,%t thread no,%F classname,%L line number,%m information ,%n line -->
+    <property name="LOG_PATTERN_CONSOLE" value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%p] [%t] [%C{0}:%L] - %m%n"/>
+    <property name="LOG_PATTERN_FILE" value="[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%p] [%t] [%C{0}:%L] - %m%n"/>
+    <property name="MAXHISTORY" value="20"/>
+    <property name="MAXFILESIZE" value="100MB"/>
 
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-  -->
+    <!-- set context name-->
+    <contextName>${APP_NAME}</contextName>
 
-<configuration>
-
-
-    <appender name="DefaultConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- console -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyy-MM-dd HH:mm:ss,GMT+8} %p - %m%n</pattern>
-            <charset class="java.nio.charset.Charset">UTF-8</charset>
+            <pattern>${LOG_PATTERN_CONSOLE}</pattern>
         </encoder>
     </appender>
 
-
-    <appender name="DefaultFileAppender"
-              class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>./logs/rocketmq_mysql.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <fileNamePattern>./logs/rocketmq_mysql.%i.log
-            </fileNamePattern>
-            <minIndex>1</minIndex>
-            <maxIndex>10</maxIndex>
+    <!-- debug level -->
+    <appender name="debug" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${DEBUG_LOG_PATH}.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${DEBUG_LOG_PATH}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>${MAXHISTORY}</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${MAXFILESIZE}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
         </rollingPolicy>
-        <triggeringPolicy
-            class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <maxFileSize>100MB</maxFileSize>
-        </triggeringPolicy>
         <encoder>
-            <pattern>%d{yyy-MM-dd HH:mm:ss,GMT+8} %p - %m%n</pattern>
-            <charset class="java.nio.charset.Charset">UTF-8</charset>
+            <pattern>${LOG_PATTERN_FILE}</pattern>
         </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
     </appender>
 
-    <appender name="PositionAppender"
-              class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>./logs/position.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <fileNamePattern>./logs/position.%i.log
-            </fileNamePattern>
-            <minIndex>1</minIndex>
-            <maxIndex>10</maxIndex>
+    <appender name="info" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${INFO_LOG_PATH}.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${INFO_LOG_PATH}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>${MAXHISTORY}</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${MAXFILESIZE}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
         </rollingPolicy>
-        <triggeringPolicy
-            class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-            <maxFileSize>10MB</maxFileSize>
-        </triggeringPolicy>
         <encoder>
-            <pattern>%d{yyy-MM-dd HH:mm:ss,GMT+8} - %m%n</pattern>
-            <charset class="java.nio.charset.Charset">UTF-8</charset>
+            <pattern>${LOG_PATTERN_FILE}</pattern>
         </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
     </appender>
 
-    <root>
-        <level value="INFO"/>
-        <appender-ref ref="DefaultConsoleAppender"/>
-        <appender-ref ref="DefaultFileAppender"/>
+    <appender name="warn" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${WARN_LOG_PATH}.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${WARN_LOG_PATH}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>${MAXHISTORY}</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${MAXFILESIZE}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN_FILE}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <appender name="error" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${ERROR_LOG_PATH}.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${ERROR_LOG_PATH}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>${MAXHISTORY}</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${MAXFILESIZE}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN_FILE}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>       
+    
+    <root level="INFO">
+        <appender-ref ref="console"/>
+        <appender-ref ref="debug"/>
+        <appender-ref ref="info"/>
+        <appender-ref ref="warn"/>
+        <appender-ref ref="error"/>
     </root>
-
-    <logger name="PositionLogger" additivity="false">
-        <level value="INFO"/>
-        <appender-ref ref="PositionAppender"/>
-    </logger>
-
 </configuration>

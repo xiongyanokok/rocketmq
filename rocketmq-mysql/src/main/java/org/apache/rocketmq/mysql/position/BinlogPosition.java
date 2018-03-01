@@ -17,31 +17,19 @@
 
 package org.apache.rocketmq.mysql.position;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class BinlogPosition {
 
-    private String binlogFilename;
-    private Long position;
+	private String binlogFilename;
+	private Long position;
 
-    public BinlogPosition(String binlogFilename, Long position) {
-        this.binlogFilename = binlogFilename;
-        this.position = position;
-    }
+	public BinlogPosition(String binlogFilename, Long position) {
+		this.binlogFilename = binlogFilename;
+		this.position = position;
+	}
 
-    public String getBinlogFilename() {
-        return binlogFilename;
-    }
-
-    public void setBinlogFilename(String binlogFilename) {
-        this.binlogFilename = binlogFilename;
-    }
-
-    public Long getPosition() {
-        return position;
-    }
-
-    public void setPosition(Long position) {
-        this.position = position;
-    }
 }
-
-
