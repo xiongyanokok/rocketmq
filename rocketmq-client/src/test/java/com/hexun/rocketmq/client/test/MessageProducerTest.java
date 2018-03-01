@@ -8,12 +8,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration({"/applicationContext-consumer.xml"})
-public class MessageConsumerTest {
+@ContextConfiguration({"/applicationContext-producer.xml"})
+public class MessageProducerTest {
 
+
+    @Autowired
+    MessageProducer producer;
 
     @Test
-    public void testConsumer() throws Exception {
-        Thread.sleep(5000000);
+    public void testP() throws Exception {
+        for (int i = 0; i < 5; i++) {
+            producer.send("yuanyue", "aaa", "aaa");
+        }
     }
 }

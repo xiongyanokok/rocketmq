@@ -13,19 +13,10 @@
         <property name="namesrvAddr" value="10.4.63.103:9876;10.4.63.104:9876"/>
         <property name="vipChannelEnabled" value="false"/>
         <property name="topic" value="yuanyue"/>
+        <property name="instanceName" value="dd123123"/>
     </bean>
 
-
-    <bean id="tags" class="com.hexun.rocketmq.client.TagsConfig" parent="appMqConf">
-        <property name="consumeCluster" value="false"/>
-        <property name="tagListenerMap">
-            <map>
-                <entry key="*" value="com.hexun.rocketmq.client.test.TestListener2"/>
-            </map>
-        </property>
-    </bean>
-
-    <!--<bean class="com.hexun.rocketmq.client.MessageProducer" parent="appMqConf"/>-->
+    <bean class="com.hexun.rocketmq.client.MessageProducer" parent="appMqConf"/>
 
     <!--<bean class="com.hexun.rocketmq.client.MessageConsumer" init-method="init" parent="appMqConf">-->
         <!--<property name="subExpression" value="taga"/>-->

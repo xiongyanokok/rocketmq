@@ -9,8 +9,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"/applicationContext-consumer.xml"})
-public class MessageConsumerTest {
+public class NoSpringMessageConsumerTest {
 
+
+    @Autowired
+    MessageProducer producer;
 
     @Test
     public void testConsumer() throws Exception {

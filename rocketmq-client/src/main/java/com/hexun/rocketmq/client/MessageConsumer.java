@@ -108,29 +108,35 @@ public class MessageConsumer extends DefaultMQPushConsumer implements Disposable
             return;
         }
         if (getMessageListener() instanceof MessageListenerOrderly) {
-            registerMessageListener((MessageListenerOrderly) getMessageListener());
+            if (consumeCluster) {
+                //顺序消费 必须是 CLUSTERING
+                setMessageModel(MessageModel.CLUSTERING);
+                registerMessageListener((MessageListenerOrderly) getMessageListener());
+            } else {
+                //广播消费 如果设置了MessageListenerOrderly,将收不到消息
+                throw new MQClientException(300, "广播消费不能设置MessageListenerOrderly");
+            }
         } else if (getMessageListener() instanceof MessageListenerConcurrently) {
             registerMessageListener((MessageListenerConcurrently) getMessageListener());
+            setMessageModel(consumeCluster ? MessageModel.CLUSTERING : MessageModel.BROADCASTING);
         }
-        if (consumeCluster) {
-            setMessageModel(MessageModel.CLUSTERING);
-        } else {
-            setMessageModel(MessageModel.BROADCASTING);
-        }
+
         setClientIP(IpUtils.getHostIP());
         setVipChannelEnabled(false);
         start();
-        log.info("\n" +
+        log.info("\n**********************************" +
                 "服务器={}\n" +
                 "TOPIC={}\n" +
                 "subExpression={}\n" +
                 "消费者ConsumerGroup={}\n" +
                 "listener class={}\n" +
-                "客户端IP={}", getNamesrvAddr(), topic, subExpression, getConsumerGroup(), getMessageListener().getClass(), getClientIP());
+                "客户端IP={}\n" +
+                "instance name={}\n" +
+                "\n**********************************", getNamesrvAddr(), topic, subExpression, getConsumerGroup(), getMessageListener().getClass(), getClientIP(), getInstanceName());
     }
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
         unsubscribe(topic);
         shutdown();
     }

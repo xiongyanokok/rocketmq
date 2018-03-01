@@ -73,7 +73,7 @@ public class MessageProducer extends DefaultMQProducer implements DisposableBean
         start();
         //健康检查
         HealthChecker.healthCheck(this);
-        log.info("ROCKETMQ Producer {} start , IP = ", getProducerGroup(), getClientIP());
+        log.info("ROCKETMQ Producer {} start , IP = {}", getProducerGroup(), getClientIP());
     }
 
     /**
