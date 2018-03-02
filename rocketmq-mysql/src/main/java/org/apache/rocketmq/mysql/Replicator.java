@@ -97,7 +97,7 @@ public class Replicator {
 		for (int i = 0; i < 3; i++) {
 			try {
 				if (null != transaction.getDataRow()) {
-					rocketMQProducer.push(transaction.toJson());
+					rocketMQProducer.push(transaction);
 				}
 				break;
 			} catch (Exception e) {

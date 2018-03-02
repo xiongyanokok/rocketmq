@@ -32,14 +32,14 @@ public class Database {
 
 	private static final String SQL = "select table_name,column_name,data_type,column_type,character_set_name from information_schema.columns where table_schema = ?";
 
-	private String dbName;
+	private String database;
 
 	private DataSource dataSource;
 
 	private Map<String, Table> tableMap = new HashMap<>();
 
-	public Database(String dbName, DataSource dataSource) {
-		this.dbName = dbName;
+	public Database(String database, DataSource dataSource) {
+		this.database = database;
 		this.dataSource = dataSource;
 	}
 
@@ -51,7 +51,7 @@ public class Database {
 		try {
 			conn = dataSource.getConnection();
 			ps = conn.prepareStatement(SQL);
-			ps.setString(1, dbName);
+			ps.setString(1, database);
 			rs = ps.executeQuery();
 
 			while (rs.next()) {
@@ -65,7 +65,7 @@ public class Database {
 
 				Table table = tableMap.get(tableName);
 				if (null == table) {
-					table = new Table(dbName, tableName);
+					table = new Table(database, tableName);
 					tableMap.put(tableName, table);
 				}
 				table.addCol(colName);

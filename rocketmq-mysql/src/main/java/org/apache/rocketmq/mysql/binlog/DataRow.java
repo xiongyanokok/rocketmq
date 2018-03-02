@@ -25,13 +25,14 @@ import java.util.Map;
 import org.apache.rocketmq.mysql.schema.Table;
 import org.apache.rocketmq.mysql.schema.column.ColumnParser;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DataRow {
 
 	private String type;
-	private Table table;
+	@Getter private Table table;
 	private Serializable[] before;
 	private Serializable[] row;
 
@@ -67,16 +68,16 @@ public class DataRow {
 
 				Map<String, Object> map = new HashMap<>();
 				map.put("database", table.getDatabase());
-				map.put("table", table.getName());
+				map.put("table", table.getTableName());
 				map.put("type", type);
 				map.put("beforeData", beforeDataMap);
 				map.put("data", dataMap);
 				return map;
 			} else {
-				log.error("Table schema changed，discard data: {} - {}, {}  {}  {}", table.getDatabase(), table.getName(), type, before, row);
+				log.error("Table schema changed，discard data: {} - {}, {}  {}  {}", table.getDatabase(), table.getTableName(), type, before, row);
 			}
 		} catch (Exception e) {
-			log.error("Row parse error，discard data: {} - {}, {}  {}  {}", table.getDatabase(), table.getName(), type, before, row);
+			log.error("Row parse error，discard data: {} - {}, {}  {}  {}", table.getDatabase(), table.getTableName(), type, before, row);
 		}
 		return null;
 	}

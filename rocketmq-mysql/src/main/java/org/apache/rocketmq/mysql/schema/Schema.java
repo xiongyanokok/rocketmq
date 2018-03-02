@@ -39,7 +39,7 @@ public class Schema {
 
 	private DataSource dataSource;
 
-	private Map<String, Database> dbMap = new HashMap<>();
+	private Map<String, Database> databaseMap = new HashMap<>();
 
 	public Schema(DataSource dataSource) {
 		this.dataSource = dataSource;
@@ -59,7 +59,7 @@ public class Schema {
 				String dbName = rs.getString(1);
 				if (!IGNORED_DATABASES.contains(dbName)) {
 					Database database = new Database(dbName, dataSource);
-					dbMap.put(dbName, database);
+					databaseMap.put(dbName, database);
 				}
 			}
 		} finally {
@@ -74,18 +74,18 @@ public class Schema {
 			}
 		}
 
-		for (Database db : dbMap.values()) {
+		for (Database db : databaseMap.values()) {
 			db.init();
 		}
 	}
 
 	public Table getTable(String dbName, String tableName) {
 
-		if (dbMap == null) {
+		if (databaseMap == null) {
 			reload();
 		}
 
-		Database database = dbMap.get(dbName);
+		Database database = databaseMap.get(dbName);
 		if (database == null) {
 			return null;
 		}
@@ -111,6 +111,6 @@ public class Schema {
 	}
 
 	public void reset() {
-		dbMap = null;
+		databaseMap = null;
 	}
 }

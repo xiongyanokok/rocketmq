@@ -28,13 +28,13 @@ import lombok.Getter;
 public class Table {
 	
 	private String database;
-	private String name;
+	private String tableName;
 	private List<String> colList = new LinkedList<>();
 	private List<ColumnParser> parserList = new LinkedList<>();
 
-	public Table(String database, String table) {
+	public Table(String database, String tableName) {
 		this.database = database;
-		this.name = table;
+		this.tableName = tableName;
 	}
 
 	public void addCol(String column) {

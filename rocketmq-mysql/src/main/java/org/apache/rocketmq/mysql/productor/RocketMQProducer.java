@@ -22,6 +22,7 @@ import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.mysql.Config;
+import org.apache.rocketmq.mysql.binlog.Transaction;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,14 +42,15 @@ public class RocketMQProducer {
 		producer.start();
 	}
 
-	public long push(String json) throws Exception {
-		log.info("--------------->{}", json);
+	public long push(Transaction transaction) throws Exception {
+		String json = transaction.toJson();
+		log.debug("--------------->{}", transaction.toJson());
 
 		Message message = new Message(config.getMqTopic(), json.getBytes("UTF-8"));
 		// 设置tag
-		// message.setTags("表名");
+		message.setTags(transaction.getDataRow().getTable().getTableName());
 		// 设置key
-		// message.setKeys("nextPosition");
+		message.setKeys(transaction.getNextBinlogPosition().getPosition().toString());
 		SendResult sendResult = producer.send(message);
 
 		return sendResult.getQueueOffset();

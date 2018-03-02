@@ -21,16 +21,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Set;
 
 import javax.sql.DataSource;
 
-import org.apache.rocketmq.client.consumer.DefaultMQPullConsumer;
-import org.apache.rocketmq.client.consumer.PullResult;
-import org.apache.rocketmq.client.consumer.PullStatus;
-import org.apache.rocketmq.common.message.MessageExt;
-import org.apache.rocketmq.common.message.MessageQueue;
-import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.apache.rocketmq.mysql.Config;
 
 import com.alibaba.fastjson.JSON;
@@ -97,31 +90,6 @@ public class BinlogPositionManager {
 	 * @throws Exception
 	 */
 	private void initPositionFromMqTail() throws Exception {
-		/*DefaultMQPullConsumer consumer = new DefaultMQPullConsumer("BINLOG_CONSUMER_GROUP");
-		consumer.setNamesrvAddr(config.mqNamesrvAddr);
-		consumer.setMessageModel(MessageModel.valueOf("BROADCASTING"));
-		consumer.start();
-
-		Set<MessageQueue> queues = consumer.fetchSubscribeMessageQueues(config.mqTopic);
-		MessageQueue queue = queues.iterator().next();
-
-		if (queue != null) {
-			Long offset = consumer.maxOffset(queue);
-			if (offset > 0)
-				offset--;
-
-			PullResult pullResult = consumer.pull(queue, "*", offset, 100);
-
-			if (pullResult.getPullStatus() == PullStatus.FOUND) {
-				MessageExt msg = pullResult.getMsgFoundList().get(0);
-				String json = new String(msg.getBody(), "UTF-8");
-
-				JSONObject js = JSON.parseObject(json);
-				binlogFilename = (String) js.get("binlogFilename");
-				nextPosition = js.getLong("nextPosition");
-			}
-		}*/
-		
 		String json = registryCenter.get("/binlogPosition");
 		JSONObject js = JSON.parseObject(json);
 		binlogFilename = js.getString("binlogFilename");
