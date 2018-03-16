@@ -44,7 +44,7 @@ public class RocketMQProducer {
 
 	public long push(Transaction transaction) throws Exception {
 		String json = transaction.toJson();
-		log.debug("--------------->{}", transaction.toJson());
+		log.debug("--------------->{}", json);
 
 		Message message = new Message(config.getMqTopic(), json.getBytes("UTF-8"));
 		// 设置tag

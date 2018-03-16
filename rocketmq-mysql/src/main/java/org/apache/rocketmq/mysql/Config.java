@@ -55,6 +55,12 @@ public class Config {
 		properties2Object(properties, this);
 	}
 
+	/**
+	 * 反射赋值
+	 * 
+	 * @param p
+	 * @param object
+	 */
 	private void properties2Object(final Properties p, final Object object) {
 		Method[] methods = object.getClass().getMethods();
 		for (Method method : methods) {
